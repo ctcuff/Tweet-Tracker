@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width">
+    <title>Tweet Tracker</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
+  </head>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <link rel="stylesheet" href="/static/style.css">
+  <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+  <body>
+
+    <nav class="navbar navbar-dark bg-dark">
+      <div>
+        <form class="form-inline" id="form-btn-container" style="float: left;">
+          <button class="btn btn-sm btn btn-dark" type="button" id="btn-start" disabled>Start</button>
+          <button class="btn btn-sm btn btn-dark" type="button" id="btn-stop" disabled>Stop</button>
+          <button class="btn btn-sm btn btn-dark" type="button" id="btn-clear" disabled>Clear</button>
+          <button class="btn btn-sm btn btn-dark" type="button" id="btn-login">Login</button>
+        </form>
+        <form class="form-inline" action="{{ url_for('logout') }}" style="display: inline-block;" id="form-logout">
+          <button class="btn btn-sm btn btn-dark" type="button" id="btn-logout" disabled>Logout</button>
+        </form>
+      </div>
+    </nav>
+
+    <div class="input-container">
+      <input type="text" class="form-control" placeholder="Keyword(s):" id="input-keyword" autocomplete="off">
+    </div>
+
+    <h3>
+      Occurrences: <span id="occurrences">0</span>
+    </h3>
+
+    <div class="flex-container">
+      <!-- This is where the cards are added when tweets come in -->
+    </div>
+
+    <button id="fab-up" class="shadow btn btn-light">
+      <img src="/static/images/baseline-arrow_upward-24px.svg">
+    </button>
+
+    <button id="fab-down" class="shadow btn btn-light">
+      <img src="/static/images/baseline-arrow_downward-24px.svg">
+    </button>
+
+    {#    <div id="view-source">#}
+    {#      <span class="fa fa-github fa-lg"></span>#}
+    {#      <a href="https://github.com/ctcuff" target="_blank">View page source</a>#}
+    {#    </div>#}
+
+  </body>
+  <script src="https://www.gstatic.com/firebasejs/5.11.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/5.11.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/5.11.1/firebase-firestore.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.6/socket.io.min.js"></script>
+  <script src="/static/config.js"></script>
+  <script>
+    firebase.initializeApp(firebaseConfig);
+  </script>
+  <script src="/static/controller.js"></script>
+</html>

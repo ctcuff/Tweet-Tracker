@@ -1,0 +1,7 @@
+.idea/
+__pycache__/
+config.py
+static/config.js
+status.json
+status_rt.json
+user.json
