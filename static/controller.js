@@ -107,7 +107,8 @@ $(document).ready(() => {
     console.log(tweet);
 
     const $cardContainer = $("<div class='card shadow rounded'></div>");
-    const $cardBody = $(`<div class='card-body'></div>`);
+    const $contentWrapper = $("<div></div>");
+    const $cardBody = $("<div class='card-body'></div>");
     const $cardTitle = $(`<h5 class='card-title' id='tweet-username'>@${tweet.screen_name}</h5>`);
     const $cardSubtitle = $(`<h6 class="card-subtitle mb-2 text-muted" id="tweet-date">${tweet.created_at}</h6>`);
     const $cardText = $(`<p class="card-text" id="tweet-text">${tweet.text}</p>`);
@@ -116,15 +117,17 @@ $(document).ready(() => {
     $cardBody.append($cardTitle);
     $cardBody.append($cardSubtitle);
     $cardBody.append($cardText);
-    $cardBody.append($cardLink);
 
-    $cardContainer.append($cardBody);
+    $contentWrapper.append($cardBody);
+
+    $cardContainer.append($contentWrapper);
+    $cardContainer.append($cardLink);
 
     $flexContainer.append($cardContainer);
     $occurrences.text(++numOccurrences);
 
-    $cardContainer.click(() => {
-      const win = window.open(tweet.profile_url, '_blank');
+    $contentWrapper.click(() => {
+      const win = window.open(tweet.tweet_url, '_blank');
       // Make sure the browser can actually open new windows
       if (win !== null) {
         win.focus();
