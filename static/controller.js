@@ -1,8 +1,7 @@
-// TODO: Add loading screen when authentication is in progress
 // TODO: Add toast messages
-// TODO: Fix scrolling (the page should auto scroll when a tweet comes in)
 // TODO: Add a conformation for starting / stopping the stream with sockets (using toasts!!!)
 // TODO: Add a limit to the number of cards that can appear on the screen
+// TODO: Give an indication of when the stream is stopped or running
 
 $(document).ready(() => {
   const url = location.protocol + '//' + document.domain + ':' + location.port;
@@ -14,6 +13,7 @@ $(document).ready(() => {
   const $logoutBtn = $('#btn-logout');
   const $formBtnContainer = $('#form-btn-container');
   const $occurrences = $('#occurrences');
+  const $loadingOverlay = $('#overlay-loading');
 
   let numOccurrences = 0;
   let isAtBottom = false;
@@ -50,6 +50,8 @@ $(document).ready(() => {
     // while a login is already in progress
     $(this).attr('disabled', 'disabled');
 
+    $loadingOverlay.toggle();
+
     // This gives the Twitter OAuth 1.0 Access Token and Secret.
     firebase.auth().signInWithPopup(provider).then((result) => {
       console.log(result);
@@ -67,6 +69,7 @@ $(document).ready(() => {
         Cookies.set('username', username);
         enableNavButtons();
         $logoutBtn.removeAttr('disabled');
+        $loadingOverlay.toggle();
         $(this).attr('disabled', 'disabled');
       }).fail((error) => {
         console.log('An error occurred completing request', error);
@@ -74,22 +77,17 @@ $(document).ready(() => {
 
     }).catch((error) => {
       console.table(error);
+      $loadingOverlay.toggle();
       $(this).removeAttr('disabled');
     });
   });
 
-  $logoutBtn.click(() => {
+  $logoutBtn.click(function () {
     // Make sure the server knows to stop the stream if the
     // user doesn't stop is before they log out
     socket.emit('stop stream');
-
-    // Disable every button except for the login button
-    for (const child of $formBtnContainer.children()) {
-      if ($(child).attr('id') !== $loginBtn.attr('id')) {
-        $(child).attr('disabled', 'disabled');
-      }
-    }
-    $logoutBtn.attr('disabled', 'disabled');
+    $loadingOverlay.toggle();
+    $(this).attr('disabled', 'disabled');
     Cookies.remove('username');
     $('#form-logout').submit();
   });
@@ -99,20 +97,35 @@ $(document).ready(() => {
   $keywordInput.tooltip({
     'trigger': 'hover',
     'title': 'Separate multiple words with commas',
-  }).focus(() => $keywordInput.tooltip('hide'));
+  }).focus(function () {
+    $(this).tooltip('hide')
+  });
 
   // Add the tweet to the flex-container
   socket.on('tweet', (tweet) => {
     socket.emit('tweet received');
     console.log(tweet);
 
+    // The created HTML element:
+    //
+    // <div class="card shadow rounded">
+    //   <div>
+    //     <div class="card-body">
+    //       <h5 class="card-title">@ctcuff</h5>
+    //       <h6 class="card-subtitle mb-2 text-muted">May, 08 2019 - 05:13:15 PM</h6>
+    //       <p class="card-text">Hello, World!</p>
+    //     </div>
+    //   </div>
+    //   <a href="https://twitter.com/ctcuff" target="_blank" class="card-link">View profile</a>
+    // </div>
+
     const $cardContainer = $("<div class='card shadow rounded'></div>");
     const $contentWrapper = $("<div></div>");
     const $cardBody = $("<div class='card-body'></div>");
-    const $cardTitle = $(`<h5 class='card-title' id='tweet-username'>@${tweet.screen_name}</h5>`);
-    const $cardSubtitle = $(`<h6 class="card-subtitle mb-2 text-muted" id="tweet-date">${tweet.created_at}</h6>`);
-    const $cardText = $(`<p class="card-text" id="tweet-text">${tweet.text}</p>`);
-    const $cardLink = $(`<a href="${tweet.profile_url}" target="_blank" class="card-link" id="tweet-profile-link">View profile</a>`);
+    const $cardTitle = $(`<h5 class='card-title'>@${tweet.screen_name}</h5>`);
+    const $cardSubtitle = $(`<h6 class="card-subtitle mb-2 text-muted">${tweet.created_at}</h6>`);
+    const $cardText = $(`<p class="card-text">${tweet.text}</p>`);
+    const $cardLink = $(`<a href="${tweet.profile_url}" target="_blank" class="card-link">View profile</a>`);
 
     $cardBody.append($cardTitle);
     $cardBody.append($cardSubtitle);

@@ -51,14 +51,6 @@ h3 {
   background-color: white;
 }
 
-/*#view-source {*/
-/*position: static;*/
-/*bottom: 0;*/
-/*left: 0;*/
-/*width: 100%;*/
-/*padding: 16px;*/
-/*}*/
-
 #view-source > span {
   margin-right: 8px;
 }
@@ -92,6 +84,76 @@ h3 {
   flex-wrap: wrap;
   width: auto;
   height: auto;
+}
+
+.loader {
+  border: 8px solid white;
+  border-radius: 50%;
+  border-top: 8px solid #212529;
+  width: 80px;
+  height: 80px;
+  /* For Safari */
+  -webkit-animation: spin 2s linear infinite;
+  animation: spin 2s linear infinite;
+}
+
+.overlay {
+  margin: auto;
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 2;
+}
+
+.overlay > div {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  font-size: 50px;
+  color: white;
+  user-select: none;
+  transform: translate(-50%, -50%);
+}
+
+#overlay-loading {
+  display: none;
+}
+
+/* For Safari */
+@-webkit-keyframes spin {
+  0% {
+    -webkit-transform: rotate(0deg);
+  }
+  100% {
+    -webkit-transform: rotate(360deg);
+  }
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@media screen and (max-width: 900px) {
+  .loader {
+    border: 5px solid white;
+    border-radius: 50%;
+    border-top: 5px solid #212529;
+    width: 55px;
+    height: 55px;
+    /* For Safari */
+    -webkit-animation: spin 1s linear infinite;
+    animation: spin 1s linear infinite;
+  }
 }
 
 @media screen and (max-width: 900px) {
