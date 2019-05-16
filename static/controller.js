@@ -68,9 +68,11 @@ $(document).ready(() => {
       }).done(() => {
         Cookies.set('username', username);
         enableNavButtons();
+
         $logoutBtn.removeAttr('disabled');
         $loadingOverlay.toggle();
         $(this).attr('disabled', 'disabled');
+
       }).fail((error) => {
         console.log('An error occurred completing request', error);
       });
@@ -102,11 +104,11 @@ $(document).ready(() => {
   });
 
   // Add the tweet to the flex-container
-  socket.on('tweet', (tweet) => {
-    socket.emit('tweet received');
-    console.log(tweet);
+  socket.on('tweet', function (tweet, callback) {
+    // Invoke the callback to tell the server that this tweet was received
+    callback();
 
-    // The created HTML element:
+    // This is the created HTML element:
     //
     // <div class="card shadow rounded">
     //   <div>

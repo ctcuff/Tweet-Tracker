@@ -1,14 +1,11 @@
-# TODO: Detect when tweet stop being received so the server can log the user out
-
 import tweepy
-import requests
 import socketio
 from flask import Flask, render_template, session, redirect, url_for, request, jsonify
 from flask_cors import CORS
 from config import *
 from filter_listener import FilterListener
 from threading import Thread
-from time import sleep, time
+from time import sleep
 
 app = Flask(__name__)
 app.secret_key = SERVER_KEY
@@ -16,10 +13,13 @@ socket = socketio.Server(async_mode='threading')
 app.wsgi_app = socketio.Middleware(socket, app.wsgi_app)
 
 CORS(app)
-TWEET_RECEIVE_TIMEOUT = 10
 auth = None
 stream = None
-last_tweet_time = 0
+message_queue = {
+    'sent': 0,
+    'received': 0
+}
+MAX_TWEETS_DROPPED = 10
 
 
 @app.route('/')
@@ -88,35 +88,18 @@ def start(data, params):
 
 @socket.on('stop stream')
 def stop(data):
-    global last_tweet_time
     print('Stopping...')
     if stream is None or not stream.running:
         print('Stream uninitialized or already stopped')
         return
     stream.disconnect()
-    last_tweet_time = 0
 
 
-@socket.on('tweet received')
-def tweet_received(data):
-    global last_tweet_time
-    last_tweet_time = time()
-    print('The client got the message')
+def client_response_callback():
+    message_queue['received'] += 1
 
 
 def stream_callback(status):
-    global last_tweet_time
-    print(last_tweet_time)
-
-    if last_tweet_time == 0:
-        last_tweet_time = time() + TWEET_RECEIVE_TIMEOUT
-
-    if time() - last_tweet_time >= TWEET_RECEIVE_TIMEOUT:
-        print('The client has left')
-        stream.disconnect()
-        requests.get('http://localhost:5000/clear_session')
-        return
-
     screen_name = status.user.screen_name
     status_id = status.id_str
     tweet = {
@@ -129,9 +112,16 @@ def stream_callback(status):
         'tweet_url': f'https://twitter.com/{screen_name}/status/{status_id}',
         'profile_url': f'https://twitter.com/{screen_name}'
     }
-    socket.emit(event='tweet', data=tweet)
+    message_queue['sent'] += 1
+    socket.emit(event='tweet', data=tweet, callback=client_response_callback)
     sleep(0.25)
-    print(f'[@{screen_name}] {status.text}')
+
+    # Stop the stream when the client stops receiving tweets
+    if message_queue['sent'] - message_queue['received'] >= MAX_TWEETS_DROPPED:
+        stream.disconnect()
+        print('Disconnecting stream...')
+
+    print(message_queue)
 
 
 def init_auth():
@@ -145,6 +135,8 @@ def init_auth():
 
 
 def start_stream(keywords):
+    message_queue['sent'] = 0
+    message_queue['received'] = 0
     stream.filter(track=keywords)
 
 
