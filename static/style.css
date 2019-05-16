@@ -154,10 +154,8 @@ h3 {
     -webkit-animation: spin 1s linear infinite;
     animation: spin 1s linear infinite;
   }
-}
 
-@media screen and (max-width: 900px) {
   .input-container {
-    width: 50%;
+    width: 95%;
   }
 }
