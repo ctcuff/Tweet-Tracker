@@ -34,3 +34,5 @@ const firebaseConfig = {
   appId: ''
 };
 ```
+### How do I run this?
+You don't need a PhD! Once you've set up everything correctly (Firebase, Twitter auth, configs, ect...), run `app.py` and head to http://localhost:5000 on your machine.
