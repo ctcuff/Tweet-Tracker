@@ -8,24 +8,25 @@
     <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="/static/effects.css">
   </head>
   <body>
 
     <nav class="navbar navbar-dark bg-dark">
       <div>
         <form class="form-inline" id="form-btn-container" style="float: left;">
-          <button class="btn btn-sm btn btn-dark" type="button" id="btn-start" disabled>Start</button>
-          <button class="btn btn-sm btn btn-dark" type="button" id="btn-stop" disabled>Stop</button>
-          <button class="btn btn-sm btn btn-dark" type="button" id="btn-clear" disabled>Clear</button>
-          <button class="btn btn-sm btn btn-dark" type="button" id="btn-login">Login</button>
+          <button class="btn btn-styled btn-sm btn-dark" type="button" id="btn-start" disabled>Start</button>
+          <button class="btn btn-styled btn-sm btn-dark" type="button" id="btn-stop" disabled>Stop</button>
+          <button class="btn btn-styled btn-sm btn-dark" type="button" id="btn-clear" disabled>Clear</button>
+          <button class="btn btn-styled btn-sm btn-dark" type="button" id="btn-login">Login</button>
         </form>
         <form class="form-inline" action="{{ url_for('logout') }}" style="display: inline-block;" id="form-logout">
-          <button class="btn btn-sm btn btn-dark" type="button" id="btn-logout" disabled>Logout</button>
+          <button class="btn btn-styled btn-sm btn-dark" type="button" id="btn-logout" disabled>Logout</button>
         </form>
       </div>
     </nav>
 
-    <div class="input-container">
+    <div id="input-container">
       <input type="text" class="form-control" placeholder="Keyword(s):" id="input-keyword" autocomplete="off">
     </div>
 
@@ -64,6 +65,23 @@
   <script src="/static/config.js"></script>
   <script>
     firebase.initializeApp(firebaseConfig);
+    toastr.options = {
+      "closeButton": true,
+      "debug": false,
+      "newestOnTop": false,
+      "progressBar": false,
+      "positionClass": $(document).width() >= 900 ? "toast-top-right" : 'toast-top-full-width',
+      "preventDuplicates": true,
+      "onclick": null,
+      "showDuration": "300",
+      "hideDuration": "1000",
+      "timeOut": "5000",
+      "extendedTimeOut": "1000",
+      "showEasing": "swing",
+      "hideEasing": "linear",
+      "showMethod": "fadeIn",
+      "hideMethod": "fadeOut"
+    }
   </script>
   <script src="/static/controller.js"></script>
 </html>
