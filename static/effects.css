@@ -23,10 +23,10 @@
   transition: transform 0.45s ease-in-out;
 }
 
-.btn-styled:hover {
+.btn-styled:hover:enabled {
   cursor: pointer;
 }
 
-.btn-styled:hover::before {
+.btn-styled:hover:enabled::before {
   transform: translate(50%, 50%) scale(15);
 }
