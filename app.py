@@ -1,18 +1,17 @@
 import tweepy
 import socketio
 from flask import Flask, render_template, session, redirect, url_for, request, jsonify
-from flask_cors import CORS
 from config import *
 from filter_listener import FilterListener
 from threading import Thread
-from time import sleep
+from time import sleep, time
+from datetime import datetime
 
 app = Flask(__name__)
 app.secret_key = SERVER_KEY
 socket = socketio.Server(async_mode='threading')
 app.wsgi_app = socketio.Middleware(socket, app.wsgi_app)
 
-CORS(app)
 auth = None
 stream = None
 message_queue = {
@@ -99,13 +98,17 @@ def client_response_callback():
     message_queue['received'] += 1
 
 
-def stream_callback(status):
+def on_stream_connected():
+    socket.emit('stream connected')
+
+
+def on_status(status):
     screen_name = status.user.screen_name
     status_id = status.id_str
     tweet = {
         # Twitter returns dates as "Sat May 04 17:17:10 +0000 2019" so this
-        # formats it as 'May, 04 2019 - 10:07:44 PM
-        'created_at': status.created_at.strftime('%b, %d %Y - %I:%M:%S %p'),
+        # formats it as 'Sat May 04, 2019 - 10:07 PM
+        'created_at': utc_to_local(status.created_at).strftime('%a %b %d, %Y - %I:%M %p'),
         'id': status.id_str,
         'text': status.text,
         'screen_name': screen_name,
@@ -130,7 +133,7 @@ def init_auth():
         auth = tweepy.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
         auth.set_access_token(session['access_token'], session['access_token_secret'])
 
-        listener = FilterListener(stream_callback)
+        listener = FilterListener(status_callback=on_status, on_connect_callback=on_stream_connected)
         stream = tweepy.Stream(auth=auth, listener=listener)
 
 
@@ -138,6 +141,12 @@ def start_stream(keywords):
     message_queue['sent'] = 0
     message_queue['received'] = 0
     stream.filter(track=keywords)
+
+
+def utc_to_local(utc_datetime):
+    now = time()
+    offset = datetime.fromtimestamp(now) - datetime.utcfromtimestamp(now)
+    return utc_datetime + offset
 
 
 if __name__ == '__main__':
