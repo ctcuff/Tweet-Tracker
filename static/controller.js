@@ -1,19 +1,19 @@
-// TODO: Add toast messages
-// TODO: Add a conformation for starting / stopping the stream with sockets (using toasts!!!)
+// TODO: Add a conformation for stopping the stream with sockets (using toasts!!!)
 // TODO: Add a limit to the number of cards that can appear on the screen
-// TODO: Give an indication of when the stream is stopped or running
+// TODO: Reset occurrences when the keyword changes
 
 $(document).ready(() => {
   const url = location.protocol + '//' + document.domain + ':' + location.port;
   const socket = io.connect(url);
   const provider = new firebase.auth.TwitterAuthProvider();
   const $keywordInput = $('#input-keyword');
-  const $flexContainer = $('.flex-container');
+  const $flexContainer = $('.container-fluid');
   const $loginBtn = $('#btn-login');
   const $logoutBtn = $('#btn-logout');
   const $formBtnContainer = $('#form-btn-container');
   const $occurrences = $('#occurrences');
   const $loadingOverlay = $('#overlay-loading');
+  const $circleIndicator = $('.circle');
 
   let numOccurrences = 0;
   let isAtBottom = false;
@@ -22,8 +22,18 @@ $(document).ready(() => {
     isAtBottom = window.innerHeight + window.scrollY >= document.body.offsetHeight;
   };
 
-  // The user is already logged in every nav button except
-  // the login button
+  $(document).keypress((e) => {
+    if (Cookies.get('username') === undefined) {
+      return;
+    }
+
+    if (e.key === 'Enter' && $keywordInput.val().trim().length > 0) {
+      socket.emit('start stream', { 'keywords': getKeyWords() });
+    }
+  });
+
+  // The user is already logged in so disable
+  // every nav button except the login button
   if (Cookies.get('username') !== undefined) {
     enableNavButtons();
   }
@@ -33,16 +43,11 @@ $(document).ready(() => {
   $('#fab-down').click(() => window.scrollTo(0, document.body.scrollHeight));
   $('#btn-clear').click(() => $flexContainer.empty());
   $('#btn-start').click(() => {
-    if ($keywordInput.val() === '') {
-      console.log('No keyword was entered');
+    if ($keywordInput.val().trim().length === 0) {
+      toastr.error("You need to enter a keyword");
       return;
     }
-    const keywords = $keywordInput
-        .val()
-        .split(',')
-        .map(str => str.trim());
-
-    socket.emit('start stream', { 'keywords': keywords });
+    socket.emit('start stream', { 'keywords': getKeyWords() });
   });
 
   $loginBtn.click(function () {
@@ -73,6 +78,7 @@ $(document).ready(() => {
         $loadingOverlay.toggle();
         $(this).attr('disabled', 'disabled');
 
+        toastr.success(`Hello @${username}`, "Welcome");
       }).fail((error) => {
         console.log('An error occurred completing request', error);
       });
@@ -81,6 +87,7 @@ $(document).ready(() => {
       console.table(error);
       $loadingOverlay.toggle();
       $(this).removeAttr('disabled');
+      toastr.error("An error occurred while logging in, please try again", "Error");
     });
   });
 
@@ -97,10 +104,14 @@ $(document).ready(() => {
   // Show the tooltip on hover but hide it when the
   // input has gained focus
   $keywordInput.tooltip({
-    'trigger': 'hover',
-    'title': 'Separate multiple words with commas',
+    trigger: 'hover',
+    title: 'Separate multiple words with commas',
   }).focus(function () {
-    $(this).tooltip('hide')
+    $(this).tooltip('hide');
+  });
+
+  socket.on('stream connected', () => {
+    toastr.success(`Listening for: ${getKeyWords().join(', ')}`, 'Connected');
   });
 
   // Add the tweet to the flex-container
@@ -163,5 +174,13 @@ $(document).ready(() => {
     }
     $loginBtn.attr('disabled', 'disabled');
     $logoutBtn.removeAttr('disabled');
+  }
+
+  function getKeyWords() {
+    return $keywordInput
+        .val()
+        .split(',')
+        .map(str => str.trim())
+        .filter(str => str.length > 0);
   }
 });
