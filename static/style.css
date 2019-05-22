@@ -1,12 +1,23 @@
-html {
-  /* Needed to ensure the body stays white when entering full screen */
-  background-color: white;
-}
-
 h3 {
   text-align: center;
   margin-top: 30px;
   margin-bottom: 30px;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #6e6e6e;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #838383;
 }
 
 .form-inline > button {
@@ -67,11 +78,9 @@ h3 {
   padding: 0 0 20px 20px;
 }
 
-.flex-container {
+.container-fluid {
   display: flex;
   flex-wrap: wrap;
-  width: auto;
-  height: auto;
 }
 
 .loader {
@@ -110,6 +119,15 @@ h3 {
 
 #overlay-loading {
   display: none;
+}
+
+.circle {
+  border-radius: 50%;
+  width: 10px;
+  height: 10px;
+  margin: 0 0 3px 5px;
+  display: inline-block;
+  background-color: #cb0021;
 }
 
 /* For Safari */
