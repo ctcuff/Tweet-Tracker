@@ -71,27 +71,17 @@ h3 {
 }
 
 .card:hover {
-  background-color: #ced4da;
+  box-shadow: 0 1rem 3rem rgba(0, 0, 0, .175);
 }
 
 .card > a {
   padding: 0 0 20px 20px;
+  max-width: 40%;
 }
 
 .container-fluid {
   display: flex;
   flex-wrap: wrap;
-}
-
-.loader {
-  border: 8px solid white;
-  border-radius: 50%;
-  border-top: 8px solid #212529;
-  width: 80px;
-  height: 80px;
-  /* For Safari */
-  -webkit-animation: spin 2s linear infinite;
-  animation: spin 2s linear infinite;
 }
 
 .overlay {
@@ -118,7 +108,7 @@ h3 {
 }
 
 #overlay-loading {
-  display: none;
+  display: block;
 }
 
 .circle {
@@ -130,38 +120,8 @@ h3 {
   background-color: #cb0021;
 }
 
-/* For Safari */
-@-webkit-keyframes spin {
-  0% {
-    -webkit-transform: rotate(0deg);
-  }
-  100% {
-    -webkit-transform: rotate(360deg);
-  }
-}
-
-@keyframes spin {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
-}
-
-@media screen and (max-width: 900px) {
-  .loader {
-    border: 5px solid white;
-    border-radius: 50%;
-    border-top: 5px solid #212529;
-    width: 55px;
-    height: 55px;
-    /* For Safari */
-    -webkit-animation: spin 1s linear infinite;
-    animation: spin 1s linear infinite;
-  }
-
+@media screen and (max-width: 600px) {
   #input-container {
-    width: 95%;
+    width: 85%;
   }
 }
