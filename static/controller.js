@@ -1,10 +1,6 @@
-// TODO: Add a conformation for stopping the stream with sockets (using toasts!!!)
-// TODO: Add a limit to the number of cards that can appear on the screen
-// TODO: Reset occurrences when the keyword changes
-
 $(document).ready(() => {
-  const url = location.protocol + '//' + document.domain + ':' + location.port;
-  const socket = io.connect(url);
+  const rootUrl = location.protocol + '//' + document.domain + ':' + location.port;
+  const socket = io.connect(rootUrl);
   const provider = new firebase.auth.TwitterAuthProvider();
   const $keywordInput = $('#input-keyword');
   const $flexContainer = $('.container-fluid');
@@ -17,6 +13,7 @@ $(document).ready(() => {
 
   let numOccurrences = 0;
   let isAtBottom = false;
+  let isStreamRunning = false;
 
   window.onscroll = () => {
     isAtBottom = window.innerHeight + window.scrollY >= document.body.offsetHeight;
@@ -38,7 +35,14 @@ $(document).ready(() => {
     enableNavButtons();
   }
 
-  $('#btn-stop').click(() => socket.emit('stop stream'));
+  // Ask the server if a stream is already running
+  $.get(rootUrl + '/status', (res) => {
+    isStreamRunning = res.running;
+    console.log(res);
+    toggleIndicator();
+    $loadingOverlay.toggle();
+  });
+
   $('#fab-up').click(() => window.scrollTo(0, 0));
   $('#fab-down').click(() => window.scrollTo(0, document.body.scrollHeight));
   $('#btn-clear').click(() => $flexContainer.empty());
@@ -48,6 +52,11 @@ $(document).ready(() => {
       return;
     }
     socket.emit('start stream', { 'keywords': getKeyWords() });
+  });
+  $('#btn-stop').click(() => {
+    isStreamRunning = false;
+    toggleIndicator();
+    socket.emit('stop stream');
   });
 
   $loginBtn.click(function () {
@@ -67,21 +76,23 @@ $(document).ready(() => {
         'access_token_secret': result.credential.secret
       };
 
-      $.post({
-        url: url + '/login',
+      const data = {
+        url: rootUrl + '/login',
         headers: payload
-      }).done(() => {
+      };
+
+      $.post(data, () => {
         Cookies.set('username', username);
         enableNavButtons();
 
         $logoutBtn.removeAttr('disabled');
-        $loadingOverlay.toggle();
+
         $(this).attr('disabled', 'disabled');
 
         toastr.success(`Hello @${username}`, "Welcome");
       }).fail((error) => {
         console.log('An error occurred completing request', error);
-      });
+      }).always(() => $loadingOverlay.toggle());
 
     }).catch((error) => {
       console.table(error);
@@ -110,7 +121,11 @@ $(document).ready(() => {
     $(this).tooltip('hide');
   });
 
+  $circleIndicator.tooltip({ trigger: 'hover' });
+
   socket.on('stream connected', () => {
+    isStreamRunning = true;
+    toggleIndicator();
     toastr.success(`Listening for: ${getKeyWords().join(', ')}`, 'Connected');
   });
 
@@ -121,21 +136,15 @@ $(document).ready(() => {
 
     // This is the created HTML element:
     //
-    // <div class="card shadow rounded">
-    //   <div>
-    //     <div class="card-body">
-    //       <h5 class="card-title">@ctcuff</h5>
-    //       <h6 class="card-subtitle mb-2 text-muted">May, 08 2019 - 05:13:15 PM</h6>
-    //       <p class="card-text">Hello, World!</p>
-    //     </div>
-    //   </div>
+    // <div class="card card-body rounded">
+    //   <h5 class="card-title">@ctcuff</h5>
+    //   <h6 class="card-subtitle mb-2 text-muted">May, 08 2019 - 05:13:15 PM</h6>
+    //   <p class="card-text">Hello, World!</p>
     //   <a href="https://twitter.com/ctcuff" target="_blank" class="card-link">View profile</a>
     // </div>
 
-    const $cardContainer = $("<div class='card shadow rounded'></div>");
-    const $contentWrapper = $("<div></div>");
-    const $cardBody = $("<div class='card-body'></div>");
-    const $cardTitle = $(`<h5 class='card-title'>@${tweet.screen_name}</h5>`);
+    const $cardBody = $('<div class="card card-body rounded"></div>');
+    const $cardTitle = $(`<h5 class="card-title">@${tweet.screen_name}</h5>`);
     const $cardSubtitle = $(`<h6 class="card-subtitle mb-2 text-muted">${tweet.created_at}</h6>`);
     const $cardText = $(`<p class="card-text">${tweet.text}</p>`);
     const $cardLink = $(`<a href="${tweet.profile_url}" target="_blank" class="card-link">View profile</a>`);
@@ -143,16 +152,16 @@ $(document).ready(() => {
     $cardBody.append($cardTitle);
     $cardBody.append($cardSubtitle);
     $cardBody.append($cardText);
+    $cardBody.append($cardLink);
 
-    $contentWrapper.append($cardBody);
-
-    $cardContainer.append($contentWrapper);
-    $cardContainer.append($cardLink);
-
-    $flexContainer.append($cardContainer);
+    $flexContainer.append($cardBody);
     $occurrences.text(++numOccurrences);
 
-    $contentWrapper.click(() => {
+    $cardBody.click((event) => {
+      // Don't let the <a> tag trigger this click listener
+      if ($(event.target).is('a')) {
+        return;
+      }
       const win = window.open(tweet.tweet_url, '_blank');
       // Make sure the browser can actually open new windows
       if (win !== null) {
@@ -160,14 +169,12 @@ $(document).ready(() => {
       }
     });
 
-    // Auto scroll to the bottom but only if the page is
-    // already at the bottom
     if (isAtBottom) {
       window.scrollTo(0, document.body.scrollHeight);
     }
   });
 
-  // Disable every nav button except for the login button
+  // Enable every nav button except for the logout button
   function enableNavButtons() {
     for (const child of $formBtnContainer.children()) {
       $(child).removeAttr('disabled');
@@ -182,5 +189,10 @@ $(document).ready(() => {
         .split(',')
         .map(str => str.trim())
         .filter(str => str.length > 0);
+  }
+
+  function toggleIndicator() {
+    $circleIndicator.css({ 'background-color': isStreamRunning ? '#009300' : '#cb0021' });
+    $circleIndicator.attr('data-original-title', isStreamRunning ? 'Stream is running' : 'Stream is not running');
   }
 });
