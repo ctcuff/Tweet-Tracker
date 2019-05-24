@@ -48,8 +48,19 @@
 
     <div class="overlay" id="overlay-loading">
       <div class="overlay-center">
-        <div class="loader"></div>
+        <svg viewBox="25 25 50 50">
+          <circle cx="50" cy="50" r="20"></circle>
+        </svg>
       </div>
+    </div>
+
+    <div class="spacer">
+      <!-- Needed to ensure the footer stays at the bottom when cards are added -->
+    </div>
+
+    <div class="footer">
+      <span class="fa fa-github fa-lg"></span>
+      <a href="https://github.com/ctcuff/Tweet-Tracker" target="_blank">View source on GitHub</a>
     </div>
 
   </body>
@@ -69,7 +80,7 @@
     toastr.options = {
       closeButton: true,
       newestOnTop: false,
-      positionClass: $(document).width() >= 900 ? "toast-top-right" : 'toast-top-full-width',
+      positionClass: "toast-top-right",
       preventDuplicates: true,
       onclick: null,
       showDuration: "300",
