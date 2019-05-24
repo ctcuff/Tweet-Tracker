@@ -1,7 +1,7 @@
 h3 {
   text-align: center;
   margin-top: 30px;
-  margin-bottom: 30px;
+  margin-bottom: 15px;
 }
 
 body {
@@ -141,6 +141,11 @@ body {
 
 .footer > a {
   font-size: 14px;
+}
+
+.display-username {
+  text-align: center;
+  display: none;
 }
 
 @media screen and (max-width: 600px) {

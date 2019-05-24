@@ -10,6 +10,7 @@ $(document).ready(() => {
   const $occurrences = $('#occurrences');
   const $loadingOverlay = $('#overlay-loading');
   const $circleIndicator = $('.circle');
+  const $displayUsername = $('.display-username');
 
   let numOccurrences = 0;
   let isAtBottom = false;
@@ -33,6 +34,7 @@ $(document).ready(() => {
   // every nav button except the login button
   if (Cookies.get('username') !== undefined) {
     enableNavButtons();
+    showUsername();
   }
 
   // Ask the server if a stream is already running
@@ -84,7 +86,7 @@ $(document).ready(() => {
       $.post(data, () => {
         Cookies.set('username', username);
         enableNavButtons();
-
+        showUsername();
         $logoutBtn.removeAttr('disabled');
 
         $(this).attr('disabled', 'disabled');
@@ -110,6 +112,7 @@ $(document).ready(() => {
     $(this).attr('disabled', 'disabled');
     Cookies.remove('username');
     $('#form-logout').submit();
+    $displayUsername.css({ display: 'none' });
   });
 
   // Show the tooltip on hover but hide it when the
@@ -194,5 +197,13 @@ $(document).ready(() => {
   function toggleIndicator() {
     $circleIndicator.css({ 'background-color': isStreamRunning ? '#009300' : '#cb0021' });
     $circleIndicator.attr('data-original-title', isStreamRunning ? 'Stream is running' : 'Stream is not running');
+  }
+
+  function showUsername() {
+    const username = Cookies.get('username');
+    $displayUsername.css({ display: 'block' });
+    $('.display-username > a')
+        .attr('href', `https://twitter.com/${username}`)
+        .text(`@${username}`);
   }
 });
