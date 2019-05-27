@@ -1,6 +1,6 @@
 Flask_Cors==3.0.7
 Flask==1.0.2
-requests==2.11.1
+requests==2.20.0
 tweepy==3.5.0
 python-socketio==4.0.0
 gunicorn==18.0.0
