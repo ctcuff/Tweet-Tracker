@@ -59,20 +59,6 @@ def logout():
     return redirect(url_for('index'))
 
 
-@app.route('/clear_session')
-def clear_session():
-    print('clearing session...')
-    global stream, auth
-    if session.get('username') is not None:
-        session.pop('username')
-        session.pop('access_token')
-        session.pop('access_token_secret')
-        stream = None
-        auth = None
-
-    return jsonify({'status': 200})
-
-
 @app.route('/status')
 def get_stream_status():
     return jsonify({'running': stream is not None and stream.running})
