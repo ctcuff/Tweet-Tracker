@@ -18,13 +18,15 @@ message_queue = {
     'sent': 0,
     'received': 0
 }
+# The maximum number of tweets not received by the client
+# before the server stops the stream
 MAX_TWEETS_DROPPED = 10
 
 
 @app.route('/')
 def index():
     print(session.get('username'))
-    return render_template('index.html', username=session.get('username'))
+    return render_template('index.html')
 
 
 @app.route('/login', methods=['POST'])
@@ -69,6 +71,11 @@ def clear_session():
         auth = None
 
     return jsonify({'status': 200})
+
+
+@app.route('/status')
+def get_stream_status():
+    return jsonify({'running': stream is not None and stream.running})
 
 
 @socket.on('start stream')
@@ -122,9 +129,8 @@ def on_status(status):
     # Stop the stream when the client stops receiving tweets
     if message_queue['sent'] - message_queue['received'] >= MAX_TWEETS_DROPPED:
         stream.disconnect()
+        socket.emit('stream disconnected')
         print('Disconnecting stream...')
-
-    print(message_queue)
 
 
 def init_auth():

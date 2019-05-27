@@ -20,18 +20,20 @@ $(document).ready(() => {
     isAtBottom = window.innerHeight + window.scrollY >= document.body.offsetHeight;
   };
 
-  $(document).keypress((e) => {
+  $(document).keydown((e) => {
     if (Cookies.get('username') === undefined) {
       return;
     }
 
-    if (e.key === 'Enter' && $keywordInput.val().trim().length > 0) {
-      socket.emit('start stream', { 'keywords': getKeyWords() });
+    if (e.key === 'Enter') {
+      startStream();
+    }
+
+    if (e.key === 'Escape') {
+      socket.emit('stop stream');
     }
   });
 
-  // The user is already logged in so disable
-  // every nav button except the login button
   if (Cookies.get('username') !== undefined) {
     enableNavButtons();
     showUsername();
@@ -47,14 +49,14 @@ $(document).ready(() => {
 
   $('#fab-up').click(() => window.scrollTo(0, 0));
   $('#fab-down').click(() => window.scrollTo(0, document.body.scrollHeight));
-  $('#btn-clear').click(() => $flexContainer.empty());
-  $('#btn-start').click(() => {
-    if ($keywordInput.val().trim().length === 0) {
-      toastr.error("You need to enter a keyword");
-      return;
-    }
-    socket.emit('start stream', { 'keywords': getKeyWords() });
+  $('#btn-start').click(() => startStream());
+
+  $('#btn-clear').click(() => {
+    $flexContainer.empty();
+    numOccurrences = 0;
+    $occurrences.text(numOccurrences);
   });
+
   $('#btn-stop').click(() => {
     isStreamRunning = false;
     toggleIndicator();
@@ -87,7 +89,7 @@ $(document).ready(() => {
         Cookies.set('username', username);
         enableNavButtons();
         showUsername();
-        $logoutBtn.removeAttr('disabled');
+          $logoutBtn.removeAttr('disabled');
 
         $(this).attr('disabled', 'disabled');
 
@@ -130,6 +132,12 @@ $(document).ready(() => {
     isStreamRunning = true;
     toggleIndicator();
     toastr.success(`Listening for: ${getKeyWords().join(', ')}`, 'Connected');
+  });
+
+  socket.on('stream disconnected', () => {
+    isStreamRunning = false;
+    toggleIndicator();
+    toastr.error('Stream disconnected');
   });
 
   // Add the tweet to the flex-container
@@ -177,6 +185,23 @@ $(document).ready(() => {
     }
   });
 
+  function startStream() {
+    if (isStreamRunning) {
+      toastr.error('A stream is already running');
+      return;
+    }
+
+    if ($keywordInput.val().trim().length === 0) {
+      toastr.error('You need to enter a keyword');
+      return;
+    }
+
+    $circleIndicator.css({ 'background-color': '#fce51d' });
+    $circleIndicator.attr('data-original-title', 'Stream is starting');
+    socket.emit('start stream', { 'keywords': getKeyWords() });
+  }
+
+
   // Enable every nav button except for the logout button
   function enableNavButtons() {
     for (const child of $formBtnContainer.children()) {
@@ -201,8 +226,8 @@ $(document).ready(() => {
 
   function showUsername() {
     const username = Cookies.get('username');
-    $displayUsername.css({ display: 'block' });
-    $('.display-username > a')
+    $displayUsername.css({ display: 'block' })
+        .find('a')
         .attr('href', `https://twitter.com/${username}`)
         .text(`@${username}`);
   }
