@@ -21,7 +21,7 @@ $(document).ready(() => {
   };
 
   $(document).keydown((e) => {
-    if (Cookies.get('username') === undefined) {
+    if (Cookies.get('at') === undefined || Cookies.get('ats') === undefined) {
       return;
     }
 
@@ -34,7 +34,7 @@ $(document).ready(() => {
     }
   });
 
-  if (Cookies.get('username') !== undefined) {
+  if (Cookies.get('at') !== undefined || Cookies.get('ats') !== undefined) {
     enableNavButtons();
     showUsername();
   }
@@ -87,9 +87,13 @@ $(document).ready(() => {
 
       $.post(data, () => {
         Cookies.set('username', username);
+        Cookies.set('at', payload.access_token);
+        Cookies.set('ats', payload.access_token_secret);
+        Cookies.set('id', payload.access_token.split('-')[0]);
+
         enableNavButtons();
         showUsername();
-          $logoutBtn.removeAttr('disabled');
+        $logoutBtn.removeAttr('disabled');
 
         $(this).attr('disabled', 'disabled');
 
@@ -107,12 +111,14 @@ $(document).ready(() => {
   });
 
   $logoutBtn.click(function () {
-    // Make sure the server knows to stop the stream if the
-    // user doesn't stop is before they log out
-    socket.emit('stop stream');
     $loadingOverlay.toggle();
     $(this).attr('disabled', 'disabled');
+
     Cookies.remove('username');
+    Cookies.remove('at');
+    Cookies.remove('ats');
+    Cookies.remove('id');
+
     $('#form-logout').submit();
     $displayUsername.css({ display: 'none' });
   });
@@ -160,10 +166,7 @@ $(document).ready(() => {
     const $cardText = $(`<p class="card-text">${tweet.text}</p>`);
     const $cardLink = $(`<a href="${tweet.profile_url}" target="_blank" class="card-link">View profile</a>`);
 
-    $cardBody.append($cardTitle);
-    $cardBody.append($cardSubtitle);
-    $cardBody.append($cardText);
-    $cardBody.append($cardLink);
+    $cardBody.append($cardTitle, $cardSubtitle, $cardText, $cardLink);
 
     $flexContainer.append($cardBody);
     $occurrences.text(++numOccurrences);
@@ -196,17 +199,22 @@ $(document).ready(() => {
       return;
     }
 
-    $circleIndicator.css({ 'background-color': '#fce51d' });
-    $circleIndicator.attr('data-original-title', 'Stream is starting');
-    socket.emit('start stream', { 'keywords': getKeyWords() });
-  }
+    $circleIndicator
+        .css({ 'background-color': '#fce51d' })
+        .attr('data-original-title', 'Stream is starting');
 
+    socket.emit('start stream', {
+      'keywords': getKeyWords(),
+      'access_token': Cookies.get('at'),
+      'access_token_secret': Cookies.get('ats')
+    });
+  }
 
   // Enable every nav button except for the logout button
   function enableNavButtons() {
-    for (const child of $formBtnContainer.children()) {
-      $(child).removeAttr('disabled');
-    }
+    $formBtnContainer.children().each(function () {
+      $(this).removeAttr('disabled');
+    });
     $loginBtn.attr('disabled', 'disabled');
     $logoutBtn.removeAttr('disabled');
   }
@@ -220,15 +228,28 @@ $(document).ready(() => {
   }
 
   function toggleIndicator() {
-    $circleIndicator.css({ 'background-color': isStreamRunning ? '#009300' : '#cb0021' });
-    $circleIndicator.attr('data-original-title', isStreamRunning ? 'Stream is running' : 'Stream is not running');
+    $circleIndicator
+        .css({ 'background-color': isStreamRunning ? '#009300' : '#cb0021' })
+        .attr('data-original-title', isStreamRunning ? 'Stream is running' : 'Stream is not running');
   }
 
   function showUsername() {
-    const username = Cookies.get('username');
-    $displayUsername.css({ display: 'block' })
-        .find('a')
-        .attr('href', `https://twitter.com/${username}`)
-        .text(`@${username}`);
+    const data = {
+      url: rootUrl + '/get_username',
+      headers: {
+        access_token: Cookies.get('at'),
+        access_token_secret: Cookies.get('ats')
+      }
+    };
+
+    // Ask the server for the user's username in case
+    // they've changed it while logged in
+    $.get(data, (res) => {
+      $displayUsername
+          .css({ display: 'block' })
+          .find('a')
+          .attr('href', `https://twitter.com/${res.username}`)
+          .text(`@${res.username}`);
+    });
   }
 });

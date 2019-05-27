@@ -1,6 +1,6 @@
 import tweepy
 import socketio
-from flask import Flask, render_template, session, redirect, url_for, request, jsonify
+from flask import Flask, render_template, redirect, url_for, request, jsonify
 from config import *
 from filter_listener import FilterListener
 from threading import Thread
@@ -25,37 +25,28 @@ MAX_TWEETS_DROPPED = 10
 
 @app.route('/')
 def index():
-    print(session.get('username'))
     return render_template('index.html')
 
 
 @app.route('/login', methods=['POST'])
 def login():
-    username = request.headers.get('username')
     access_token = request.headers.get('access_token')
     access_token_secret = request.headers.get('access_token_secret')
 
-    if not username or not access_token or not access_token_secret:
+    if not access_token or not access_token_secret:
         return jsonify({'error': 'Missing or invalid headers'})
 
-    if session.get('username') is None:
-        session['username'] = username
-        session['access_token'] = access_token
-        session['access_token_secret'] = access_token_secret
-        init_auth()
+    init_auth(access_token, access_token_secret)
 
     return jsonify({'status': 200})
 
 
 @app.route('/logout')
 def logout():
-    global stream, auth
-    if session.get('username') is not None:
-        session.pop('username')
-        session.pop('access_token')
-        session.pop('access_token_secret')
-        stream = None
-        auth = None
+    global auth
+    auth = None
+    if stream is not None and stream.running:
+        stream.disconnect()
     return redirect(url_for('index'))
 
 
@@ -64,27 +55,39 @@ def get_stream_status():
     return jsonify({'running': stream is not None and stream.running})
 
 
+@app.route('/get_username', methods=['GET'])
+def get_username():
+    access_token = request.headers.get('access_token')
+    access_token_secret = request.headers.get('access_token_secret')
+
+    if not access_token or not access_token_secret:
+        return jsonify({'error': 'Missing or invalid headers'})
+
+    init_auth(access_token, access_token_secret)
+
+    return jsonify({'username': auth.get_username()})
+
+
 @socket.on('start stream')
 def start(data, params):
     print('Starting...')
     print(f'data: {data}, param: {params}')
+
+    init_auth(params['access_token'], params['access_token_secret'])
+
     if stream is None or stream.running:
         print('Stream uninitialized or already running')
         return
-    try:
-        thread = Thread(target=start_stream, args=(params['keywords'],))
-        thread.start()
-    except Exception as e:
-        print(e)
+
+    thread = Thread(target=start_stream, args=(params['keywords'],))
+    thread.start()
 
 
 @socket.on('stop stream')
-def stop(data):
+def stop_stream(data):
     print('Stopping...')
-    if stream is None or not stream.running:
-        print('Stream uninitialized or already stopped')
-        return
-    stream.disconnect()
+    if stream is not None and stream.running:
+        stream.disconnect()
 
 
 def client_response_callback():
@@ -119,12 +122,11 @@ def on_status(status):
         print('Disconnecting stream...')
 
 
-def init_auth():
+def init_auth(access_token, access_token_secret):
     global auth, stream
-    if session.get('username') is not None:
+    if auth is None:
         auth = tweepy.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
-        auth.set_access_token(session['access_token'], session['access_token_secret'])
-
+        auth.set_access_token(access_token, access_token_secret)
         listener = FilterListener(status_callback=on_status, on_connect_callback=on_stream_connected)
         stream = tweepy.Stream(auth=auth, listener=listener)
 
