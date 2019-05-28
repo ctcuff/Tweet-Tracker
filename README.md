@@ -2,7 +2,7 @@
 
 ![](https://github.com/ctcuff/Tweet-Tracker/blob/master/example.gif)
 
-Like [Tweety for Android](https://github.com/ctcuff/Tweety-Android), this is a website to track the occurrences of a single or multiple keywords. How does it work? A when a user logs into Twitter, a Python server takes the auth tokens and uses those to connect to a status stream using [tweepy](https://github.com/tweepy/tweepy). When a tweet is received, that tweet is sent to the front-end via sockets.
+Like [Tweety for Android](https://github.com/ctcuff/Tweety-Android), this is a website to track the occurrences of a single or multiple keywords. How does it work? When a user logs into Twitter, a Python server takes the auth tokens and uses those to connect to a status stream using [tweepy](https://github.com/tweepy/tweepy). When a tweet is received, that tweet is sent to the front-end via sockets.
 
 ### How do I build this?
 0. Head over to [Twitter's developer site](https://developer.twitter.com/) to apply for a developer account and create a new app.
