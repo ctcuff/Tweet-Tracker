@@ -30,22 +30,31 @@ $(document).ready(() => {
     }
 
     if (e.key === 'Escape') {
-      socket.emit('stop stream');
+      stopStream();
     }
   });
 
-  if (Cookies.get('at') !== undefined || Cookies.get('ats') !== undefined) {
+  if (Cookies.get('at') !== undefined && Cookies.get('ats') !== undefined) {
     enableNavButtons();
     showUsername();
-  }
 
-  // Ask the server if a stream is already running
-  $.get(rootUrl + '/status', (res) => {
-    isStreamRunning = res.running;
-    console.log(res);
-    toggleIndicator();
+    const payload = {
+      url: '/status',
+      headers: {
+        id: Cookies.get('id')
+      }
+    };
+
+    // Ask the server if a stream is already running
+    $.get(payload, (res) => {
+      isStreamRunning = res.running;
+      console.log(res);
+      toggleIndicator();
+      $loadingOverlay.toggle();
+    });
+  } else {
     $loadingOverlay.toggle();
-  });
+  }
 
   $('#fab-up').click(() => window.scrollTo(0, 0));
   $('#fab-down').click(() => window.scrollTo(0, document.body.scrollHeight));
@@ -57,11 +66,7 @@ $(document).ready(() => {
     $occurrences.text(numOccurrences);
   });
 
-  $('#btn-stop').click(() => {
-    isStreamRunning = false;
-    toggleIndicator();
-    socket.emit('stop stream');
-  });
+  $('#btn-stop').click(() => stopStream());
 
   $loginBtn.click(function () {
     // Disable the login button so it can't be clicked
@@ -70,26 +75,27 @@ $(document).ready(() => {
 
     $loadingOverlay.toggle();
 
-    // This gives the Twitter OAuth 1.0 Access Token and Secret.
     firebase.auth().signInWithPopup(provider).then((result) => {
-      console.log(result);
+      const id  = result.additionalUserInfo.profile.id_str;
       const username = result.additionalUserInfo.username;
+      const { accessToken, secret } = result.credential;
       const payload = {
-        'username': username,
-        'access_token': result.credential.accessToken,
-        'access_token_secret': result.credential.secret
+        url: '/login',
+        headers: {
+          'username': username,
+          'access_token': accessToken,
+          'access_token_secret': secret,
+          'id': id
+        }
       };
 
-      const data = {
-        url: rootUrl + '/login',
-        headers: payload
-      };
+      Cookies.set('username', username);
+      Cookies.set('at', accessToken);
+      Cookies.set('ats', secret);
+      Cookies.set('id', id);
 
-      $.post(data, () => {
-        Cookies.set('username', username);
-        Cookies.set('at', payload.access_token);
-        Cookies.set('ats', payload.access_token_secret);
-        Cookies.set('id', payload.access_token.split('-')[0]);
+      $.post(payload, () => {
+        console.log(payload);
 
         enableNavButtons();
         showUsername();
@@ -134,31 +140,31 @@ $(document).ready(() => {
 
   $circleIndicator.tooltip({ trigger: 'hover' });
 
-  socket.on('stream connected', () => {
+  socket.on('stream connected', (data) => {
+    if (data.id !== Cookies.get('id'))
+      return;
     isStreamRunning = true;
     toggleIndicator();
     toastr.success(`Listening for: ${getKeyWords().join(', ')}`, 'Connected');
   });
 
-  socket.on('stream disconnected', () => {
+  socket.on('stream disconnected', (data) => {
+    if (data.id !== Cookies.get('id'))
+      return;
     isStreamRunning = false;
     toggleIndicator();
     toastr.error('Stream disconnected');
   });
 
   // Add the tweet to the flex-container
-  socket.on('tweet', function (tweet, callback) {
-    // Invoke the callback to tell the server that this tweet was received
-    callback();
+  socket.on('tweet', function (data, callback) {
+    const tweet = data.tweet;
 
-    // This is the created HTML element:
-    //
-    // <div class="card card-body rounded">
-    //   <h5 class="card-title">@ctcuff</h5>
-    //   <h6 class="card-subtitle mb-2 text-muted">May, 08 2019 - 05:13:15 PM</h6>
-    //   <p class="card-text">Hello, World!</p>
-    //   <a href="https://twitter.com/ctcuff" target="_blank" class="card-link">View profile</a>
-    // </div>
+    if (data.id !== Cookies.get('id'))
+      return;
+
+    // Invoke the callback to tell the server that this tweet was received
+    callback(data.id);
 
     const $cardBody = $('<div class="card card-body rounded"></div>');
     const $cardTitle = $(`<h5 class="card-title">@${tweet.screen_name}</h5>`);
@@ -204,10 +210,17 @@ $(document).ready(() => {
         .attr('data-original-title', 'Stream is starting');
 
     socket.emit('start stream', {
-      'keywords': getKeyWords(),
-      'access_token': Cookies.get('at'),
-      'access_token_secret': Cookies.get('ats')
+      keywords: getKeyWords(),
+      access_token: Cookies.get('at'),
+      access_token_secret: Cookies.get('ats'),
+      id: Cookies.get('id')
     });
+  }
+
+  function stopStream() {
+    isStreamRunning = false;
+    toggleIndicator();
+    socket.emit('stop stream', { id: Cookies.get('id') });
   }
 
   // Enable every nav button except for the logout button
@@ -234,17 +247,18 @@ $(document).ready(() => {
   }
 
   function showUsername() {
-    const data = {
-      url: rootUrl + '/get_username',
+    const payload = {
+      url: '/get_username',
       headers: {
         access_token: Cookies.get('at'),
-        access_token_secret: Cookies.get('ats')
+        access_token_secret: Cookies.get('ats'),
+        id: Cookies.get('id')
       }
     };
 
     // Ask the server for the user's username in case
-    // they've changed it while logged in
-    $.get(data, (res) => {
+    // they've changed it
+    $.get(payload, (res) => {
       $displayUsername
           .css({ display: 'block' })
           .find('a')
