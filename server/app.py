@@ -1,17 +1,20 @@
 import tweepy
 import socketio
-from flask import Flask, render_template, redirect, url_for, request, jsonify, session
+from flask import Flask, render_template, request, jsonify, session
 from config import *
 from filter_listener import FilterListener
 from time import sleep, time
 from datetime import datetime
 from users import User
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='build/static', template_folder='build')
 app.secret_key = SERVER_KEY
 socket = socketio.Server(async_mode='threading')
 app.wsgi_app = socketio.Middleware(socket, app.wsgi_app)
+
+# Used to keep track of which streams belong to which user
 users = {}
+
 # The maximum number of tweets not received by the client
 # before the server stops the stream
 MAX_TWEETS_DROPPED = 10
@@ -19,8 +22,6 @@ MAX_TWEETS_DROPPED = 10
 
 @app.route('/')
 def index():
-    print(f'ID: {session.get("id")}')
-    print(users)
     return render_template('index.html')
 
 
@@ -50,7 +51,7 @@ def logout():
                 user.stream.disconnect()
             del users[user_id]
 
-    return redirect(url_for('index'))
+    return jsonify({'status': 200})
 
 
 @app.route('/status', methods=['GET'])
@@ -81,21 +82,33 @@ def get_username():
 @socket.on('start stream')
 def start(pid, params):
     user_id = params['id']
+    keywords = params['keywords']
+
     init_auth(user_id, params['access_token'], params['access_token_secret'])
+
     user = users[user_id]
 
-    if user.stream.running:
+    if not user or user.stream.running or not keywords:
         return
 
-    user.stream.filter(track=params['keywords'])
+    socket.emit('stream starting', data={'id': user.id})
+
+    user.stream.filter(track=keywords)
     user.messages_received = 0
     user.messages_sent = 0
 
 
 @socket.on('stop stream')
 def stop_stream(pid, params):
-    user = users[params['id']]
-    if user.stream.running:
+    _id = params['id']
+
+    if _id not in users:
+        return
+
+    user = users[_id]
+
+    if user and user.stream.running:
+        socket.emit('stream disconnected', data={'id': params['id']})
         user.stream.disconnect()
         print(f"Stopping @{user.username}'s stream")
 
@@ -142,7 +155,7 @@ def init_auth(user_id, access_token, access_token_secret):
         listener = FilterListener(status_callback=on_status, on_connect_callback=on_stream_connected, user_id=user_id)
         stream = tweepy.Stream(auth=auth, listener=listener)
 
-        users[user_id] = User(auth.get_username(), stream)
+        users[user_id] = User(user_id, auth.get_username(), stream)
 
 
 def utc_to_local(utc_datetime):

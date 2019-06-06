@@ -1,0 +1,21 @@
+{
+  "name": "Tweety-Web",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "firebase": "latest",
+    "react-bootstrap": "latest",
+    "react-dom": "^16.8.6",
+    "react-scripts": "0.9.5",
+    "socket.io-client": "latest",
+    "react": "^16.8.6"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "start": "react-scripts start",
+    "build-development": "react-scripts build && mv build server",
+    "build-production": "react-scripts build && rm build/static/js/*.map && rm build/static/css/*.map && rm build/asset-manifest.json && mv build server",
+    "test": "react-scripts test --env=jsdom",
+    "eject": "react-scripts eject"
+  }
+}
