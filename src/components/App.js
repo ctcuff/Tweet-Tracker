@@ -9,11 +9,12 @@ import Tooltip from "react-bootstrap/Tooltip";
 import CircleIndicator from "./CircleIndicator";
 import TweetCard from "./TweetCard";
 import { setCookie, getCookie, deleteCookie } from "../utils";
-import "../static/app.css";
+import "../static/App.css";
 
 // Import jQuery so we can use its get/post functions
 // because those are compatible with Internet Explorer
 const { toastr, $ } = window;
+const url = 'http://127.0.0.1:5000';
 
 export default class App extends Component {
 
@@ -21,7 +22,7 @@ export default class App extends Component {
     super(props);
     this.state = {
       cards: [],
-      socket: io.connect(),
+      socket: io.connect(url),
       occurrences: 0,
       isLoggedIn: false,
       isAuthInProgress: true,
@@ -108,7 +109,7 @@ export default class App extends Component {
       const username = result.additionalUserInfo.username;
       const { accessToken, secret } = result.credential;
       const payload = {
-        url: '/login',
+        url: url + '/login',
         headers: {
           access_token: accessToken,
           access_token_secret: secret,
@@ -148,7 +149,7 @@ export default class App extends Component {
     this.setState({ isAuthInProgress: true });
     this.state.socket.emit('stop stream', { id: this.state.id });
 
-    $.get('/logout')
+    $.get(url + '/logout')
         .done(() => {
           this.setState({
             username: deleteCookie('username'),

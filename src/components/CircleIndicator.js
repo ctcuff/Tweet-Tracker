@@ -3,6 +3,7 @@ import OverlayTrigger from "react-bootstrap/OverlayTrigger";
 import Tooltip from "react-bootstrap/Tooltip";
 
 const $ = window.$;
+const url = 'http://127.0.0.1:5000';
 
 export default class CircleIndicator extends Component {
 
@@ -28,7 +29,7 @@ export default class CircleIndicator extends Component {
 
     // The stream might still might be running when the user
     // leaves and returns so it needs to be checked
-    $.get('/status', resp => {
+    $.get(url + '/status', resp => {
       this.setState({
         tooltipText: resp.running ? tooltipMessage[1] : tooltipMessage[2],
         style: {

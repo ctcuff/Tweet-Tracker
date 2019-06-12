@@ -6,11 +6,13 @@ from filter_listener import FilterListener
 from time import sleep, time
 from datetime import datetime
 from users import User
+from flask_cors import CORS
 
 app = Flask(__name__, static_folder='build/static', template_folder='build')
 app.secret_key = SERVER_KEY
 socket = socketio.Server(async_mode='threading')
 app.wsgi_app = socketio.Middleware(socket, app.wsgi_app)
+CORS(app)
 
 # Used to keep track of which streams belong to which user
 users = {}
@@ -165,4 +167,4 @@ def utc_to_local(utc_datetime):
 
 
 if __name__ == '__main__':
-    app.run()
+    app.run(debug=True)

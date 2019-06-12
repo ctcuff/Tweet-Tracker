@@ -15,7 +15,7 @@ export default function TweetCard(props) {
       <Card.Body onClick={(event) => {
         // Don't let the <a> tag trigger this click listener since
         // it'll cause 2 windows to open
-        if (event.target.tagName.toLocaleLowerCase() === 'a') {
+        if (event.target.tagName.toLowerCase() === 'a') {
           return;
         }
         const win = window.open(tweet.tweet_url, '_blank');

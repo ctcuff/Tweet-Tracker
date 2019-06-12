@@ -2,9 +2,10 @@ import * as firebase from "firebase/app";
 import "firebase/auth";
 import React from "react";
 import ReactDOM from "react-dom";
-import "./static/index.css";
 import App from "./components/App";
 import firebaseConfig from "./config";
+import "./static/index.css";
+
 
 firebase.initializeApp(firebaseConfig);
 
