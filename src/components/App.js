@@ -209,7 +209,10 @@ export default class App extends Component {
             <CircleIndicator socket={this.state.socket} userId={this.state.id}/>
           </h3>
           <p style={{ display: this.state.isLoggedIn ? 'block' : 'none' }} className="App_display-username">
-            Signed in as <a target="_blank" href={`https://twitter.com/${username}`}>@{username}</a>
+            Signed in as
+            <a target="_blank" href={`https://twitter.com/${username}`} rel="noopener noreferrer">
+              @{username}
+            </a>
           </p>
           <Container fluid={true} className="App_container">
             {this.state.cards}

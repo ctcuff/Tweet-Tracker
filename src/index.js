@@ -6,7 +6,6 @@ import App from "./components/App";
 import firebaseConfig from "./config";
 import "./style/index.css";
 
-
 firebase.initializeApp(firebaseConfig);
 
 const provider = new firebase.auth.TwitterAuthProvider();
@@ -15,7 +14,9 @@ function Footer() {
   return (
     <div>
       <span className="fa fa-github fa-lg"/>
-      <a href="https://github.com/ctcuff/Tweet-Tracker" target="_blank">View source on GitHub</a>
+      <a href="https://github.com/ctcuff/Tweet-Tracker" target="_blank" rel="noopener noreferrer">
+        View source on GitHub
+      </a>
     </div>
   );
 }
