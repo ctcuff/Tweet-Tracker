@@ -6,7 +6,7 @@
     "firebase": "latest",
     "react-bootstrap": "latest",
     "react-dom": "^16.8.6",
-    "react-scripts": "0.9.5",
+    "react-scripts": "3.0.1",
     "socket.io-client": "latest",
     "react": "^16.8.6"
   },
@@ -17,5 +17,17 @@
     "build-production": "react-scripts build && rm build/static/js/*.map && rm build/static/css/*.map && rm build/asset-manifest.json && mv build server",
     "test": "react-scripts test --env=jsdom",
     "eject": "react-scripts eject"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
   }
 }
