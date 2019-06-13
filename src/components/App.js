@@ -9,7 +9,7 @@ import Tooltip from "react-bootstrap/Tooltip";
 import CircleIndicator from "./CircleIndicator";
 import TweetCard from "./TweetCard";
 import { setCookie, getCookie, deleteCookie } from "../utils";
-import "../style/App.css";
+import "../styles/App.css";
 
 // Import jQuery so we can use its get/post functions
 // because those are compatible with Internet Explorer
@@ -209,7 +209,10 @@ export default class App extends Component {
             <CircleIndicator socket={this.state.socket} userId={this.state.id}/>
           </h3>
           <p style={{ display: this.state.isLoggedIn ? 'block' : 'none' }} className="App_display-username">
-            Signed in as <a target="_blank" href={`https://twitter.com/${username}`}>@{username}</a>
+            Signed in as
+            <a target="_blank" href={`https://twitter.com/${username}`} rel="noopener noreferrer">
+              @{username}
+              </a>
           </p>
           <Container fluid={true} className="App_container">
             {this.state.cards}

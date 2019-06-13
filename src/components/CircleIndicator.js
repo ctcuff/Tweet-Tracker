@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 import OverlayTrigger from "react-bootstrap/OverlayTrigger";
 import Tooltip from "react-bootstrap/Tooltip";
-import "../style/CircleIndicator.css";
+import "../styles/CircleIndicator.css";
 
 const $ = window.$;
 

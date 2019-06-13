@@ -1,6 +1,6 @@
 import React from "react";
 import Card from "react-bootstrap/Card";
-import "../style/TweetCard.css";
+import "../styles/TweetCard.css";
 
 export default function TweetCard(props) {
   const { tweet_url, screen_name, created_at, text, profile_url } = props.tweet;
@@ -21,7 +21,7 @@ export default function TweetCard(props) {
           <Card.Title>@{screen_name}</Card.Title>
           <Card.Subtitle className="mb-2 text-muted">{created_at}</Card.Subtitle>
           <Card.Text>{text}</Card.Text>
-          <Card.Link href={profile_url} target="_blank">View profile</Card.Link>
+          <Card.Link href={profile_url} target="_blank" rel="noopener noreferrer">View profile</Card.Link>
         </Card.Body>
       </Card>
   );

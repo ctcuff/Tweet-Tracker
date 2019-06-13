@@ -2,7 +2,7 @@ import React, { Component } from "react";
 import Navbar from "react-bootstrap/Navbar";
 import ButtonToolbar from "react-bootstrap/ButtonToolbar";
 import Button from "react-bootstrap/Button";
-import "../style/Nav.css";
+import "../styles/Nav.css";
 
 export default class Nav extends Component {
   render() {

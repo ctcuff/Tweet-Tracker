@@ -2,7 +2,7 @@ import React  from "react";
 import Button from "react-bootstrap/Button";
 import arrowUp from "../static/baseline-arrow_upward-24px.svg";
 import arrowDown from "../static/baseline-arrow_downward-24px.svg";
-import "../style/FloatingButton.css";
+import "../styles/FloatingButton.css";
 
 export default function FloatingButtonGroup() {
 

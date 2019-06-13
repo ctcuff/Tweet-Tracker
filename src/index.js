@@ -2,7 +2,7 @@ import * as firebase from "firebase/app";
 import "firebase/auth";
 import React from "react";
 import ReactDOM from "react-dom";
-import "./style/index.css";
+import "./styles/index.css";
 import App from "./components/App";
 import firebaseConfig from "./config";
 
@@ -14,7 +14,9 @@ function Footer() {
   return (
     <div>
       <span className="fa fa-github fa-lg"/>
-      <a href="https://github.com/ctcuff/Tweet-Tracker" target="_blank">View source on GitHub</a>
+      <a href="https://github.com/ctcuff/Tweet-Tracker" target="_blank" rel="noopener noreferrer">
+        View source on GitHub
+      </a>
     </div>
   );
 }
