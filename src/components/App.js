@@ -9,7 +9,7 @@ import Tooltip from "react-bootstrap/Tooltip";
 import CircleIndicator from "./CircleIndicator";
 import TweetCard from "./TweetCard";
 import { setCookie, getCookie, deleteCookie } from "../utils";
-import "../static/App.css";
+import "../style/App.css";
 
 // Import jQuery so we can use its get/post functions
 // because those are compatible with Internet Explorer
@@ -44,7 +44,6 @@ export default class App extends Component {
 
       // Invoke the callback to tell the server that this tweet was received
       callback(data.id);
-
       this.addCard(tweet);
 
       if (this.isAtBottom) {
@@ -179,40 +178,6 @@ export default class App extends Component {
   };
 
   render() {
-    const containerStyle = {
-      display: 'flex',
-      flexWrap: 'wrap'
-    };
-
-    const overlayStyle = {
-      margin: 'auto',
-      position: 'fixed',
-      width: '100%',
-      height: '100%',
-      top: 0,
-      right: 0,
-      bottom: 0,
-      left: 0,
-      backgroundColor: 'rgba(0, 0, 0, 0.5)',
-      zIndex: 2,
-      display: this.state.isAuthInProgress ? 'block' : 'none'
-    };
-
-    const overlayCenterStyle = {
-      position: 'absolute',
-      top: '50%',
-      left: '50%',
-      fontSize: '50px',
-      color: 'white',
-      userSelect: 'none',
-      transform: 'translate(-50%, -50%)'
-    };
-
-    const displayUsername = {
-      textAlign: 'center',
-      display: this.state.isLoggedIn ? 'block' : 'none'
-    };
-
     const tooltip = (
         <Tooltip id="tooltip-bottom">
           Separate multiple words with commas
@@ -229,27 +194,29 @@ export default class App extends Component {
               onLoginClick={this.handleLogin}
               onLogoutClick={this.handleLogout}
               onClearClick={this.clearCards}
-              isLoggedIn={this.state.isLoggedIn}/>
+              isLoggedIn={this.state.isLoggedIn}
+          />
           <OverlayTrigger placement="bottom" overlay={tooltip}>
             <Form.Control
                 placeholder="Keyword(s):"
                 type="text"
                 className="input-container"
-                onChange={this.updateKeywords}/>
+                onChange={this.updateKeywords}
+            />
           </OverlayTrigger>
           <h3>
             Occurrences: <span>{this.state.occurrences}</span>
-            <CircleIndicator socket={this.state.socket} id={this.state.id}/>
+            <CircleIndicator socket={this.state.socket} userId={this.state.id}/>
           </h3>
-          <p style={displayUsername}>
+          <p style={{ display: this.state.isLoggedIn ? 'block' : 'none' }} className="App_display-username">
             Signed in as <a target="_blank" href={`https://twitter.com/${username}`}>@{username}</a>
           </p>
-          <Container fluid={true} style={containerStyle}>
+          <Container fluid={true} className="App_container">
             {this.state.cards}
           </Container>
           <FloatingButtonGroup/>
-          <div style={overlayStyle}>
-            <div style={overlayCenterStyle}>
+          <div style={{ display: this.state.isAuthInProgress ? 'block' : 'none' }} className="App_overlay">
+            <div>
               <svg viewBox="25 25 50 50">
                 <circle cx="50" cy="50" r="20"/>
               </svg>

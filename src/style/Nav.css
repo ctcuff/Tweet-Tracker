@@ -1,0 +1,33 @@
+.Nav_btn {
+  z-index: 1;
+  margin-right: 8px;
+  position: relative;
+  color: white;
+  outline: none;
+  border: none;
+  overflow: hidden;
+  transition: color 0.4s ease-in-out;
+}
+
+.Nav_btn::before {
+  content: '';
+  z-index: -1;
+  position: absolute;
+  bottom: 100%;
+  right: 100%;
+  width: 1em;
+  height: 1em;
+  border-radius: 50%;
+  background-color: dodgerblue;
+  transform-origin: center;
+  transform: translate(50%, 50%) scale(0);
+  transition: transform 0.45s ease-in-out;
+}
+
+.Nav_btn:hover:enabled {
+  cursor: pointer;
+}
+
+.Nav_btn:hover:enabled::before {
+  transform: translate(50%, 50%) scale(15);
+}

@@ -1,35 +1,27 @@
-import React, { Component } from "react";
+import React  from "react";
 import Button from "react-bootstrap/Button";
 import arrowUp from "../static/baseline-arrow_upward-24px.svg";
 import arrowDown from "../static/baseline-arrow_downward-24px.svg";
-import "../static/FloatingButton.css";
+import "../style/FloatingButton.css";
 
-export default class FloatingButtonGroup extends Component {
+export default function FloatingButtonGroup() {
 
-  constructor(props) {
-    super(props);
-    this.scrollTop = this.scrollTop.bind(this);
-    this.scrollBottom = this.scrollBottom.bind(this);
-  }
-
-  scrollTop() {
+  const scrollTop = () => {
     window.scrollTo(0, 0);
-  }
+  };
 
-  scrollBottom() {
+  const scrollBottom = () => {
     window.scroll(0, document.body.scrollHeight);
-  }
+  };
 
-  render() {
-    return (
+  return (
       <div>
-        <Button variant="light" onClick={this.scrollTop} id="fab-up" className="shadow">
+        <Button variant="light" onClick={scrollTop} id="fab-up" className="shadow">
           <img src={arrowUp} alt=""/>
         </Button>
-        <Button variant="light" onClick={this.scrollBottom} id="fab-down" className="shadow">
+        <Button variant="light" onClick={scrollBottom} id="fab-down" className="shadow">
           <img src={arrowDown} alt=""/>
         </Button>
       </div>
-    );
-  }
+  );
 }
