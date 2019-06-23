@@ -8,7 +8,7 @@
 
 @media screen and (min-width: 601px) {
   .TweetCard:hover {
-    transform: translate(1%, -6%);
+    transform: translateY(-6%);
     cursor: pointer;
     border: 1px solid rgba(0, 0, 0, 0.70);
     box-shadow: 0 1rem 3rem rgba(0, 0, 0, .175);
