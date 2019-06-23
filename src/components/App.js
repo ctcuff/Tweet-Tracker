@@ -9,11 +9,9 @@ import Tooltip from "react-bootstrap/Tooltip";
 import CircleIndicator from "./CircleIndicator";
 import TweetCard from "./TweetCard";
 import { setCookie, getCookie, deleteCookie } from "../utils";
+import toastr from 'toastr';
+import axios from 'axios';
 import "../style/App.css";
-
-// Import jQuery so we can use its get/post functions
-// because those are compatible with Internet Explorer
-const { toastr, $ } = window;
 
 export default class App extends Component {
 
@@ -107,7 +105,6 @@ export default class App extends Component {
       const username = result.additionalUserInfo.username;
       const { accessToken, secret } = result.credential;
       const payload = {
-        url: '/login',
         headers: {
           access_token: accessToken,
           access_token_secret: secret,
@@ -115,26 +112,26 @@ export default class App extends Component {
         }
       };
 
-      $.post(payload)
-          .done(() => {
-            this.setState({
-              username: setCookie('username', username),
-              id: setCookie('id', id),
-              token: setCookie('at', accessToken),
-              tokenSecret: setCookie('ats', secret),
-              isLoggedIn: true
-            });
-            toastr.success(`Hello, @${username}`, 'Welcome');
-          })
-          .fail(err => {
-            console.log(err);
-            toastr.error('An error occurred while logging in, please try again', 'Error');
-          })
-          .always(() => {
-            this.setState({ isAuthInProgress: false })
+      axios.post('login', payload)
+        .then(() => {
+          this.setState({
+            username: setCookie('username', username),
+            id: setCookie('id', id),
+            token: setCookie('at', accessToken),
+            tokenSecret: setCookie('ats', secret),
+            isLoggedIn: true
           });
+          toastr.success(`Hello, @${username}`, 'Welcome');
+        })
+        .catch(err => {
+          console.log(err);
+          toastr.error('An error occurred while logging in, please try again', 'Error');
+        })
+        .finally(() => {
+          this.setState({ isAuthInProgress: false });
+        });
 
-    }).catch((err) => {
+    }).catch(err => {
       console.log(err);
       toastr.error('An error occurred while logging in, please try again', 'Error');
       this.setState({
@@ -147,25 +144,25 @@ export default class App extends Component {
     this.setState({ isAuthInProgress: true });
     this.state.socket.emit('stop stream', { id: this.state.id });
 
-    $.get('/logout')
-        .done(() => {
-          this.setState({
-            username: deleteCookie('username'),
-            id: deleteCookie('id'),
-            token: deleteCookie('at'),
-            tokenSecret: deleteCookie('ats'),
-            isLoggedIn: false,
-            cards: [],
-            occurrences: 0,
-          });
-        })
-        .fail(err => {
-          console.log(err);
-          toastr.error('An error occurred while logging out', 'error');
-        })
-        .always(() => {
-          this.setState({ isAuthInProgress: false });
+    axios.get('/logout')
+      .then(() => {
+        this.setState({
+          username: deleteCookie('username'),
+          id: deleteCookie('id'),
+          token: deleteCookie('at'),
+          tokenSecret: deleteCookie('ats'),
+          isLoggedIn: false,
+          cards: [],
+          occurrences: 0,
         });
+      })
+      .catch(err => {
+        console.log(err);
+        toastr.error('An error occurred while logging out', 'error');
+      })
+      .finally(() => {
+        this.setState({ isAuthInProgress: false });
+      });
   };
 
   updateKeywords = (e) => {
