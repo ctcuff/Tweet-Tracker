@@ -1,6 +1,6 @@
 import React from "react";
 import Card from "react-bootstrap/Card";
-import "../styles/TweetCard.css";
+import "../style/TweetCard.css";
 
 export default function TweetCard(props) {
   const { tweet_url, screen_name, created_at, text, profile_url } = props.tweet;
