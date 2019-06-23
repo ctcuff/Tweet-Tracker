@@ -11,7 +11,13 @@ import TweetCard from "./TweetCard";
 import { setCookie, getCookie, deleteCookie } from "../utils";
 import toastr from 'toastr';
 import axios from 'axios';
+import * as firebase from 'firebase/app';
+import "firebase/auth";
+import firebaseConfig from "../config";
 import "../style/App.css";
+
+firebase.initializeApp(firebaseConfig);
+const provider = new firebase.auth.TwitterAuthProvider();
 
 export default class App extends Component {
 
@@ -97,7 +103,6 @@ export default class App extends Component {
   };
 
   handleLogin = () => {
-    const { firebase, provider } = this.props;
     this.setState({ isAuthInProgress: true });
 
     firebase.auth().signInWithPopup(provider).then(result => {
