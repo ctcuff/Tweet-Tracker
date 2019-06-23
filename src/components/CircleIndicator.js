@@ -1,9 +1,8 @@
 import React, { Component } from "react";
 import OverlayTrigger from "react-bootstrap/OverlayTrigger";
 import Tooltip from "react-bootstrap/Tooltip";
-import "../styles/CircleIndicator.css";
-
-const $ = window.$;
+import "../style/CircleIndicator.css";
+import axios from "axios";
 
 export default class CircleIndicator extends Component {
 
@@ -19,21 +18,18 @@ export default class CircleIndicator extends Component {
     const events = ['stream starting', 'stream connected', 'stream disconnected'];
     const tooltipMessage = ['Stream is starting', 'Stream is running', 'Stream is not running'];
     const colors = ['#fce51d', '#009300', '#cb0021'];
-    const data = {
-      url: '/status',
-      headers: {
-        id: this.userId
-      }
-    };
 
-    // The stream might still might be running when the user
-    // leaves and returns so it needs to be checked
-    $.get(data, (resp) => {
-      this.setState({
-        tooltipText: resp.running ? tooltipMessage[1] : tooltipMessage[2],
-        backgroundColor: resp.running ? colors[1] : colors[2]
-      });
-    });
+    axios.get('/status', {
+      headers: { id: this.userId }
+    })
+      .then(resp => {
+        const running = resp.data.running;
+        this.setState({
+          tooltipText: running ? tooltipMessage[1] : tooltipMessage[2],
+          backgroundColor: running ? colors[1] : colors[2]
+        });
+      })
+      .catch(err => console.log(err));
 
     events.forEach((event, index) => {
       this.props.socket.on(event, (data) => {
@@ -54,14 +50,15 @@ export default class CircleIndicator extends Component {
     this.userId = this.props.userId;
 
     const tooltip = (
-        <Tooltip id="tooltip-bottom">
-          {this.state.tooltipText}
-        </Tooltip>
+      <Tooltip id="tooltip-bottom">
+        {this.state.tooltipText}
+      </Tooltip>
     );
+
     return (
-        <OverlayTrigger overlay={tooltip}>
-          <span style={{ backgroundColor: this.state.backgroundColor }} className="CircleIndicator"/>
-        </OverlayTrigger>
+      <OverlayTrigger overlay={tooltip}>
+        <span style={{ backgroundColor: this.state.backgroundColor }} className="CircleIndicator"/>
+      </OverlayTrigger>
     );
   }
 }
