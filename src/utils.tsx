@@ -1,4 +1,4 @@
-function setCookie(name, value) {
+function setCookie(name: string, value: string): string {
   const date = new Date();
   date.setTime(date.getTime() + 86400000000);
   const expires = 'expires=' + date.toUTCString();
@@ -6,7 +6,7 @@ function setCookie(name, value) {
   return value;
 }
 
-function getCookie(cookieName) {
+function getCookie(cookieName: string): string {
   const name = cookieName + '=';
   const decodedCookie = decodeURIComponent(document.cookie);
   const parts = decodedCookie.split(';');
@@ -22,7 +22,7 @@ function getCookie(cookieName) {
   return '';
 }
 
-function deleteCookie(name) {
+function deleteCookie(name: string): string {
   document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
   return '';
 }
