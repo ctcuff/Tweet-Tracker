@@ -1,14 +1,7 @@
-import * as firebase from "firebase/app";
-import "firebase/auth";
 import React from "react";
 import ReactDOM from "react-dom";
-import "./styles/index.css";
 import App from "./components/App";
-import firebaseConfig from "./config";
-
-firebase.initializeApp(firebaseConfig);
-
-const provider = new firebase.auth.TwitterAuthProvider();
+import "./style/index.css";
 
 function Footer() {
   return (
@@ -21,12 +14,5 @@ function Footer() {
   );
 }
 
-ReactDOM.render(
-  <App provider={provider} firebase={firebase} id="entry"/>,
-  document.getElementById('root')
-);
-
-ReactDOM.render(
-  <Footer/>,
-  document.getElementById('footer')
-);
+ReactDOM.render(<App/>, document.getElementById('root'));
+ReactDOM.render(<Footer/>, document.getElementById('footer'));
