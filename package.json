@@ -1,18 +1,31 @@
 {
-  "name": "Tweety-Web",
+  "name": "tweety-web",
   "version": "0.1.0",
   "private": true,
+  "proxy": "http://127.0.0.1:5000",
   "dependencies": {
+    "@types/node": "12.0.10",
+    "@types/react": "16.8.22",
+    "@types/react-dom": "16.8.4",
+    "@types/socket.io-client": "^1.4.32",
+    "@types/toastr": "^2.1.37",
+    "axios": "^0.19.0",
     "firebase": "latest",
+    "react": "^16.8.6",
     "react-bootstrap": "latest",
     "react-dom": "^16.8.6",
     "react-scripts": "3.0.1",
     "socket.io-client": "latest",
-    "react": "^16.8.6"
+    "toastr": "^2.1.4",
+    "typescript": "3.5.2"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "@types/react-bootstrap": "^0.32.17",
+    "@types/react-scroll": "^1.5.4"
+  },
   "scripts": {
     "start": "react-scripts start",
+    "start-server": "py server/app.py",
     "build-development": "react-scripts build && mv build server",
     "build-production": "react-scripts build && rm build/static/js/*.map && rm build/static/css/*.map && rm build/asset-manifest.json && mv build server",
     "test": "react-scripts test --env=jsdom",
