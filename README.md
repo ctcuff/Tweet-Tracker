@@ -38,6 +38,8 @@ const firebaseConfig = {
   messagingSenderId: '',
   appId: ''
 };
+
+export default firebaseConfig;
 ```
 ### How do I run this?
-You don't need a PhD! Once you've set up everything correctly (Firebase, Twitter auth, configs, ect...), run `npm run build-development`. Once that finishes, give `server/app.py` a run and head to http://localhost:5000 on your machine.
+You don't need a PhD! Once you've set up everything correctly (Firebase, Twitter auth, configs, ect...), run `npm install` then `npm run build-development`. Once that finishes, give `server/app.py` a run and head to http://localhost:5000 on your machine.
