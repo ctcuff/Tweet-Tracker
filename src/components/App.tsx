@@ -126,7 +126,7 @@ export default class App extends Component<{}, AppState> {
   handleLogin = (): void => {
     this.setState({ isAuthInProgress: true });
 
-    firebase.auth().signInWithPopup(this.provider).then((result:any) => {
+    firebase.auth().signInWithPopup(this.provider).then((result: any) => {
       const id = result.additionalUserInfo.profile.id_str;
       const username = result.additionalUserInfo.username;
       const { accessToken, secret } = result.credential;
@@ -202,7 +202,7 @@ export default class App extends Component<{}, AppState> {
   render() {
     const tooltip = (
       <Tooltip id="tooltip-bottom">
-        {this.state.isLoggedIn ? "Separate multiple words with commas": "You need log in first"}
+        {this.state.isLoggedIn ? "Separate multiple words with commas" : "You need log in first"}
       </Tooltip>
     );
 
@@ -231,7 +231,7 @@ export default class App extends Component<{}, AppState> {
           <CircleIndicator socket={this.state.socket} userId={this.state.id}/>
         </h3>
         <p style={{ display: this.state.isLoggedIn ? 'block' : 'none' }} className="App_display-username">
-          Signed in as
+          Signed in as {}
           <a target="_blank" href={`https://twitter.com/${username}`} rel="noopener noreferrer">
             @{username}
           </a>
