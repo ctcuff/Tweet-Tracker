@@ -9,7 +9,7 @@ Like [Tweety for Android](https://github.com/ctcuff/Tweety-Android), this is a w
 ### How do I build this?
 0. Head over to [Twitter's developer site](https://developer.twitter.com/) to apply for a developer account and create a new app.
 1. Go to Google's [Firebase site](https://firebase.google.com/) to create a new project.
-2. In the Firebase console, navigate to the Authentication tab and enable Twitter Sign-in. Enter the API keys you (hopefully) got from step 0 and be sure to copy the callback URL as well.
+2. In the Firebase console, navigate to the Authentication tab and, under the Sign-in-tab, enable Twitter Sign-in. Enter the API keys you (hopefully) got from step 0 and be sure to copy the callback URL as well.
 3. Navigate back to Twitter's developer console and paste the callback URL from step 2 into the app's callback URL parameter.
 
 There are 2 files are missing from this project. `config.py` and `config.js`. Create a `config.py` that looks like this:
@@ -26,7 +26,7 @@ In `config.js`:
 ```javascript
 // Place this file in the src directory of this project
 //
-// In the Firebase console, navigate to Settings > General. Scroll down and
+// In the Firebase console, navigate to Project Settings > General. Scroll down and
 // click "Add app" to add a web app. Copy the generated config, it should look
 // like this.
 const firebaseConfig = {
