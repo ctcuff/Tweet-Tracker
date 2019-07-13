@@ -1,22 +1,29 @@
 import React from 'react';
-import Navbar from "react-bootstrap/Navbar";
-import ButtonToolbar from "react-bootstrap/ButtonToolbar";
-import Button from "react-bootstrap/Button";
-import "../style/Nav.css";
+import Navbar from 'react-bootstrap/Navbar';
+import ButtonToolbar from 'react-bootstrap/ButtonToolbar';
+import Button from 'react-bootstrap/Button';
+import '../style/Nav.css';
 
-type NavProps = {
-  onStartClick: () => void;
-  onStopClick: () => void;
-  onClearClick: () => void;
-  onLoginClick: () => void;
-  onLogoutClick: () => void;
+type Callback = () => void;
+
+interface NavProps {
+  onStartClick: Callback;
+  onStopClick: Callback;
+  onClearClick: Callback;
+  onLoginClick: Callback;
+  onLogoutClick: Callback;
   isLoggedIn: boolean;
-};
+}
 
 export default function Nav(props: NavProps) {
+  const actions: string[] = [
+    'Start',
+    'Stop',
+    'Clear',
+    props.isLoggedIn ? 'Logout' : 'Login'
+  ];
 
-  const actions: string[] = ['Start', 'Stop', 'Clear', props.isLoggedIn ? 'Logout' : 'Login'];
-  const handlers = [
+  const handlers: Callback[] = [
     props.onStartClick,
     props.onStopClick,
     props.onClearClick,
@@ -27,7 +34,7 @@ export default function Nav(props: NavProps) {
     <div>
       <Navbar bg="dark" variant="dark">
         <ButtonToolbar>
-          {actions.map((action: string, index: number) =>
+          {actions.map((action: string, index: number) => (
             <Button
               key={index}
               disabled={!props.isLoggedIn && action !== 'Login'}
@@ -38,7 +45,7 @@ export default function Nav(props: NavProps) {
             >
               {action}
             </Button>
-          )}
+          ))}
         </ButtonToolbar>
       </Navbar>
     </div>
