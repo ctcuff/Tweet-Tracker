@@ -29,21 +29,21 @@ def index():
 def login():
     access_token = request.headers.get('access_token')
     access_token_secret = request.headers.get('access_token_secret')
-    user_id = request.headers.get('id')
+    user_id = request.headers.get('user_id')
 
     if not access_token or not access_token_secret or not user_id:
         return jsonify({'error': 'Missing or invalid headers'})
 
     init_auth(user_id, access_token, access_token_secret)
-    session['id'] = user_id
+    session['user_id'] = user_id
 
     return jsonify({'status': 200})
 
 
 @app.route('/logout')
 def logout():
-    if 'id' in session:
-        user_id = session.pop('id')
+    if 'user_id' in session:
+        user_id = session.pop('user_id')
 
         if user_id in users:
             user = users[user_id]
@@ -56,7 +56,11 @@ def logout():
 
 @app.route('/status', methods=['GET'])
 def get_stream_status():
-    user_id = request.headers.get('id')
+    user_id = request.headers.get('user_id')
+
+    if not user_id:
+        return jsonify({'error': 'Missing parameter user_id'})
+
     running = False
 
     if user_id in users:
@@ -69,7 +73,7 @@ def get_stream_status():
 def get_username():
     access_token = request.headers.get('access_token')
     access_token_secret = request.headers.get('access_token_secret')
-    user_id = request.headers.get('id')
+    user_id = request.headers.get('user_id')
 
     if not access_token or not access_token_secret:
         return jsonify({'error': 'Missing or invalid headers'})
@@ -81,7 +85,7 @@ def get_username():
 
 @socket.on('start stream')
 def start(pid, params):
-    user_id = params['id']
+    user_id = params['user_id']
     keywords = params['keywords']
 
     init_auth(user_id, params['access_token'], params['access_token_secret'])
@@ -91,7 +95,9 @@ def start(pid, params):
     if not user or user.stream.running or not keywords:
         return
 
-    socket.emit('stream starting', data={'id': user.id})
+    # Emitting the user's id ensures the response goes
+    # to the correct user
+    socket.emit('stream starting', data={'user_id': user.id})
 
     user.stream.filter(track=keywords)
     user.messages_received = 0
@@ -100,7 +106,7 @@ def start(pid, params):
 
 @socket.on('stop stream')
 def stop_stream(pid, params):
-    _id = params['id']
+    _id = params['user_id']
 
     if _id not in users:
         return
@@ -108,29 +114,33 @@ def stop_stream(pid, params):
     user = users[_id]
 
     if user and user.stream.running:
-        socket.emit('stream disconnected', data={'id': params['id']})
+        socket.emit('stream disconnected', data={'user_id': params['user_id']})
         user.stream.disconnect()
         print(f"Stopping @{user.username}'s stream")
 
 
 def client_response_callback(user_id):
+    """
+    Invoked by the client to let the server know
+    that they're still listening
+    """
     users[user_id].messages_received += 1
 
 
 def on_stream_connected(user_id):
-    socket.emit('stream connected', data={'id': user_id})
+    socket.emit('stream connected', data={'user_id': user_id})
 
 
 def on_status(user_id, status):
     user = users[user_id]
     screen_name = status.user.screen_name
     data = {
-        'id': user_id,
+        'user_id': user_id,
         'tweet': {
             # Twitter returns dates as "Sat May 04 17:17:10 +0000 2019" so this
             # formats it as 'Sat May 04, 2019 - 10:07 PM
             'created_at': utc_to_local(status.created_at).strftime('%a %b %d, %Y - %I:%M %p'),
-            'id': status.id_str,
+            'status_id': status.id_str,
             'text': status.text,
             'screen_name': screen_name,
             'tweet_url': f'https://twitter.com/{screen_name}/status/{status.id_str}',
@@ -144,7 +154,7 @@ def on_status(user_id, status):
     # Stop the stream when the client stops receiving tweets
     if user.messages_sent - user.messages_received >= MAX_TWEETS_DROPPED:
         user.stream.disconnect()
-        socket.emit('stream disconnected', data={'id': user_id})
+        socket.emit('stream disconnected', data={'user_id': user_id})
         print(f"Disconnecting @{user.username}'s stream...")
 
 
