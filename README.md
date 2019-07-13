@@ -15,7 +15,7 @@ Note that before you get started, you'll need to have Python 3.x and npm install
 2. In the Firebase console, navigate to the Authentication tab and, under the Sign-in-tab, enable Twitter Sign-in. Enter the API keys you (hopefully) got from step 0 and be sure to copy the callback URL as well.
 3. Navigate back to Twitter's developer console and paste the callback URL from step 2 into the app's callback URL parameter.
 
-There are 2 files are missing from this project. `config.py` and `config.js`. Create a `config.py` that looks like this:
+There are 2 files are missing from this project. `config.py` and `config.tsx`. Create a `config.py` that looks like this:
 ```python
 # Place this file in the server directory
 #
@@ -25,8 +25,8 @@ CONSUMER_SECRET = ''
 # This is any random string. I recommend using something from the uuid library
 SERVER_KEY = ''
 ```
-In `config.js`:
-```javascript
+In `config.tsx`:
+```typescript
 // Place this file in the src directory of this project
 //
 // In the Firebase console, navigate to Project Settings > General. Scroll down and
