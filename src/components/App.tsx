@@ -3,9 +3,6 @@ import Container from 'react-bootstrap/Container';
 import Nav from './Nav';
 import FloatingButtonGroup from './FloatingButtonGroup';
 import io from 'socket.io-client';
-import Form from 'react-bootstrap/Form';
-import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
-import Tooltip from 'react-bootstrap/Tooltip';
 import CircleIndicator from './CircleIndicator';
 import TweetCard from './TweetCard';
 import { setCookie, getCookie, deleteCookie } from '../utils';
@@ -19,6 +16,8 @@ import {
   ServerConnectResponse,
   ServerHeaders
 } from '../server-types';
+import LoadingOverlay from './LoadingOverlay';
+import InputForm from './InputForm';
 
 interface AppState {
   cards: JSX.Element[];
@@ -34,7 +33,7 @@ interface AppState {
 
 type SocketCallback = (userId: string) => void;
 
-export default class App extends Component<{}, AppState> {
+class App extends Component<{}, AppState> {
   private readonly provider = new firebase.auth.TwitterAuthProvider();
   private isAtBottom = false;
   private keywords: string[] = [];
@@ -59,7 +58,9 @@ export default class App extends Component<{}, AppState> {
       (data: ServerTweet, callback: SocketCallback) => {
         // The server broadcasts tweets to everyone connected
         // so we need to check if this tweet belongs to this client
-        if (data.user_id !== this.state.userId) return;
+        if (data.user_id !== this.state.userId) {
+          return;
+        }
 
         // Invoke the callback to tell the server that this tweet was received
         callback(data.user_id);
@@ -214,16 +215,15 @@ export default class App extends Component<{}, AppState> {
   };
 
   render() {
-    const tooltip = (
-      <Tooltip id="tooltip-bottom">
-        {this.state.isLoggedIn
-          ? 'Separate multiple words with commas'
-          : 'You need log in first'}
-      </Tooltip>
-    );
-
-    const username = this.state.username;
-
+    const {
+      username,
+      isLoggedIn,
+      occurrences,
+      socket,
+      userId,
+      cards,
+      isAuthInProgress
+    } = this.state;
     return (
       <div>
         <Nav
@@ -232,25 +232,14 @@ export default class App extends Component<{}, AppState> {
           onLoginClick={this.handleLogin}
           onLogoutClick={this.handleLogout}
           onClearClick={this.clearCards}
-          isLoggedIn={this.state.isLoggedIn}
+          isLoggedIn={isLoggedIn}
         />
-        <OverlayTrigger placement="bottom" overlay={tooltip}>
-          <Form.Control
-            placeholder="Keyword(s):"
-            type="text"
-            className="input-container"
-            // @ts-ignore
-            onChange={this.updateKeywords}
-          />
-        </OverlayTrigger>
+        <InputForm isLoggedIn={isLoggedIn} onChange={this.updateKeywords} />
         <h3>
-          Occurrences: <span>{this.state.occurrences}</span>
-          <CircleIndicator
-            socket={this.state.socket}
-            userId={this.state.userId}
-          />
+          Occurrences: <span>{occurrences}</span>
+          <CircleIndicator socket={socket} userId={userId} />
         </h3>
-        <p className="App_display-username" hidden={!this.state.isLoggedIn}>
+        <p className="App_display-username" hidden={!isLoggedIn}>
           Signed in as {}
           <a
             target="_blank"
@@ -261,17 +250,13 @@ export default class App extends Component<{}, AppState> {
           </a>
         </p>
         <Container fluid={true} className="App_container">
-          {this.state.cards}
+          {cards}
         </Container>
         <FloatingButtonGroup />
-        <div className="App_overlay" hidden={!this.state.isAuthInProgress}>
-          <div>
-            <svg viewBox="25 25 50 50">
-              <circle cx="50" cy="50" r="20" />
-            </svg>
-          </div>
-        </div>
+        <LoadingOverlay show={!isAuthInProgress} />
       </div>
     );
   }
 }
+
+export default App;
