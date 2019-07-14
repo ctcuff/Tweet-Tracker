@@ -148,7 +148,11 @@ def on_status(user_id, status):
         }
     }
     user.messages_sent += 1
-    socket.emit(event='tweet', data=data, callback=client_response_callback)
+    socket.emit(
+        event='tweet',
+        data=data,
+        callback=client_response_callback
+    )
     sleep(0.25)
 
     # Stop the stream when the client stops receiving tweets
@@ -162,7 +166,11 @@ def init_auth(user_id, access_token, access_token_secret):
     if user_id not in users:
         auth = tweepy.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
         auth.set_access_token(access_token, access_token_secret)
-        listener = FilterListener(status_callback=on_status, on_connect_callback=on_stream_connected, user_id=user_id)
+        listener = FilterListener(
+            status_callback=on_status,
+            on_connect_callback=on_stream_connected,
+            user_id=user_id
+        )
         stream = tweepy.Stream(auth=auth, listener=listener)
 
         users[user_id] = User(user_id, auth.get_username(), stream)
