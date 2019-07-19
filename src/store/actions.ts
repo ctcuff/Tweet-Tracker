@@ -1,14 +1,16 @@
 import axios from 'axios';
+import {  Dispatch } from 'redux';
 import { deleteCookie, setCookie } from '../utils';
 import toastr from 'toastr';
 import * as firebase from 'firebase/app';
 import 'firebase/auth';
+import { ServerHeaders } from '../server-types';
 
 const AUTH = 'AUTH';
 const provider = new firebase.auth.TwitterAuthProvider();
 
 function login() {
-  return function(dispatch) {
+  return function(dispatch: Dispatch): Promise<any> {
     dispatch({
       type: AUTH,
       payload: {
@@ -18,11 +20,11 @@ function login() {
     return firebase
       .auth()
       .signInWithPopup(provider)
-      .then(result => {
+      .then((result: any) => {
         const userId = result.additionalUserInfo.profile.id_str;
         const username = result.additionalUserInfo.username;
         const { accessToken, secret } = result.credential;
-        const headers = {
+        const headers: ServerHeaders = {
           access_token: accessToken,
           access_token_secret: secret,
           user_id: userId
@@ -76,7 +78,7 @@ function login() {
 }
 
 function logout() {
-  return function(dispatch) {
+  return function(dispatch: Dispatch): Promise<any> {
     dispatch({
       type: AUTH,
       payload: {
@@ -86,7 +88,7 @@ function logout() {
 
     return axios
       .get('/logout')
-      .then(() => {
+      .then(() =>
         dispatch({
           type: AUTH,
           payload: {
@@ -96,20 +98,20 @@ function logout() {
             tokenSecret: deleteCookie('ats'),
             isLoggedIn: false
           }
-        });
-      })
+        })
+      )
       .catch(err => {
         console.log(err);
         toastr.error('An error occurred while logging out', 'error');
       })
-      .finally(() => {
+      .finally(() =>
         dispatch({
           type: AUTH,
           payload: {
             isAuthInProgress: false
           }
-        });
-      });
+        })
+      );
   };
 }
 export { login, logout };

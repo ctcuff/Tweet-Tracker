@@ -1,7 +1,8 @@
 import { getCookie } from '../utils';
 import io from 'socket.io-client';
+import { AuthStateProps, AuthAction } from './types';
 
-const initialState = {
+const initialState: AuthStateProps = {
   isAuthInProgress: false,
   username: getCookie('username'),
   userId: getCookie('id'),
@@ -17,7 +18,7 @@ if (username && userId && token && tokenSecret) {
   initialState.isLoggedIn = true;
 }
 
-const reducer = (state = initialState, action) => {
+const reducer = (state: AuthStateProps = initialState, action: AuthAction) => {
   if (action.type === 'AUTH') {
     return Object.assign({}, state, {
       ...state,

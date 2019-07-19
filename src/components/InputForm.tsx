@@ -6,7 +6,7 @@ import { connect } from 'react-redux';
 import '../style/InputForm.css';
 
 interface InputFormProps {
-  isLoggedIn?: boolean;
+  isLoggedIn: boolean;
   onChange: (e: React.FormEvent<HTMLFormElement>) => void;
 }
 

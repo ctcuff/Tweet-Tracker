@@ -1,12 +1,13 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import '../style/LoadingOverlay.css';
+import { AuthStateProps } from '../store/types';
 
 interface LoadingOverlayProps {
-  isAuthInProgress?: boolean;
+  isAuthInProgress: boolean;
 }
 
-const mapStateToProps = (state: any) => ({
+const mapStateToProps = (state: AuthStateProps) => ({
   isAuthInProgress: state.isAuthInProgress
 });
 

@@ -4,6 +4,7 @@ import ButtonToolbar from 'react-bootstrap/ButtonToolbar';
 import Button from 'react-bootstrap/Button';
 import { connect } from 'react-redux';
 import '../style/Nav.css';
+import { AuthStateProps } from '../store/types';
 
 type Callback = () => void;
 
@@ -13,10 +14,10 @@ interface NavProps {
   onClearClick: Callback;
   onLoginClick: Callback;
   onLogoutClick: Callback;
-  isLoggedIn?: boolean;
+  isLoggedIn: boolean;
 }
 
-const mapStateToProps = (state: any) => ({
+const mapStateToProps = (state: AuthStateProps) => ({
   isLoggedIn: state.isLoggedIn
 });
 

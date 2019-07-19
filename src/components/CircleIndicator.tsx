@@ -5,8 +5,9 @@ import '../style/CircleIndicator.css';
 import axios from 'axios';
 import { connect } from 'react-redux';
 import { ServerHeaders, ServerResponse, SocketResponse } from '../server-types';
+import { AuthStateProps } from '../store/types';
 
-const mapStateToProps = (state: any) => ({
+const mapStateToProps = (state: AuthStateProps) => ({
   socket: state.socket,
   userId: state.userId
 });
@@ -20,8 +21,8 @@ const tooltipMessage = [
 const colors = ['#fce51d', '#009300', '#cb0021'];
 
 interface CircleIndicatorProps {
-  socket?: SocketIOClient.Socket;
-  userId?: string;
+  socket: SocketIOClient.Socket;
+  userId: string;
 }
 
 interface CircleIndicatorState {
@@ -36,6 +37,7 @@ class CircleIndicator extends Component<CircleIndicatorProps, CircleIndicatorSta
   };
 
   componentDidMount() {
+    const { userId, socket } = this.props;
     const events = [
       'stream starting',
       'stream connected',
@@ -43,7 +45,7 @@ class CircleIndicator extends Component<CircleIndicatorProps, CircleIndicatorSta
     ];
 
     const headers: ServerHeaders = {
-      user_id: this.props.userId!
+      user_id: userId
     };
 
     axios
@@ -58,18 +60,17 @@ class CircleIndicator extends Component<CircleIndicatorProps, CircleIndicatorSta
       .catch(err => console.log(err));
 
     events.forEach((event: string, index: number) => {
-      this.props.socket &&
-        this.props.socket.on(event, (resp: SocketResponse) => {
-          // Since the socket emits are global, we need to check
-          // if this event was sent to the correct user
-          if (!this.props.userId || this.props.userId !== resp.user_id) {
-            return;
-          }
-          this.setState({
-            tooltipText: tooltipMessage[index],
-            backgroundColor: colors[index]
-          });
+      socket.on(event, (resp: SocketResponse) => {
+        // Since the socket emits are global, we need to check
+        // if this event was sent to the correct user
+        if (userId !== resp.user_id) {
+          return;
+        }
+        this.setState({
+          tooltipText: tooltipMessage[index],
+          backgroundColor: colors[index]
         });
+      });
     });
   }
 

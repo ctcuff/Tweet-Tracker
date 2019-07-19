@@ -11,13 +11,14 @@ import LoadingOverlay from './LoadingOverlay';
 import InputForm from './InputForm';
 import { login, logout } from '../store/actions';
 import { connect } from 'react-redux';
+import { AuthStateProps } from '../store/types';
 
 const mapDispatchToProps = (dispatch: (func: any) => void) => ({
   login: () => dispatch(login()),
   logout: () => dispatch(logout())
 });
 
-const mapStateToProps = (state: any) => ({
+const mapStateToProps = (state: AuthStateProps) => ({
   isAuthInProgress: state.isAuthInProgress,
   username: state.username,
   userId: state.userId,
@@ -33,14 +34,14 @@ interface AppState {
 }
 
 interface AppProps {
-  login?: () => void;
-  logout?: () => void;
-  isLoggedIn?: boolean;
-  username?: string;
-  userId?: string;
-  token?: string;
-  tokenSecret?: string;
-  socket?: SocketIOClient.Socket;
+  login: () => void;
+  logout: () => void;
+  isLoggedIn: boolean;
+  username: string;
+  userId: string;
+  token: string;
+  tokenSecret: string;
+  socket: SocketIOClient.Socket;
 }
 
 type SocketCallback = (userId: string) => void;
@@ -56,37 +57,31 @@ class App extends Component<AppProps, AppState> {
 
   constructor(props: AppProps) {
     super(props);
+    const { socket, userId } = this.props;
 
-    this.props.socket &&
-    this.props.socket.on(
-      'tweet',
-      (data: ServerTweet, callback: SocketCallback) => {
-        // The server broadcasts tweets to everyone connected
-        // so we need to check if this tweet belongs to this client
-        if (data.user_id !== this.props.userId) {
-          return;
-        }
-
-        // Invoke the callback to tell the server that this tweet was received
-        callback(data.user_id!);
-        this.addCard(data);
-
-        if (this.isAtBottom) {
-          window.scrollTo(0, document.body.scrollHeight);
-        }
+    socket.on('tweet', (data: ServerTweet, callback: SocketCallback) => {
+      // The server broadcasts tweets to everyone connected
+      // so we need to check if this tweet belongs to this client
+      if (data.user_id !== userId) {
+        return;
       }
-    );
 
-    this.props.socket &&
-    this.props.socket.on('stream connected', (data: ServerConnectResponse) => {
-        if (data.user_id !== this.props.userId) return;
+      // Invoke the callback to tell the server that this tweet was received
+      callback(data.user_id!);
+      this.addCard(data);
 
-        toastr.success(
-          `Listening for ${this.keywords.join(', ')}`,
-          'Connected'
-        );
+      if (this.isAtBottom) {
+        window.scrollTo(0, document.body.scrollHeight);
       }
-    );
+    });
+
+    socket.on('stream connected', (data: ServerConnectResponse) => {
+      if (data.user_id !== userId) {
+        return;
+      }
+
+      toastr.success(`Listening for ${this.keywords.join(', ')}`, 'Connected');
+    });
   }
 
   componentDidMount() {
@@ -112,9 +107,9 @@ class App extends Component<AppProps, AppState> {
   };
 
   startStream = () => {
-    const { token, tokenSecret, userId } = this.props;
-    this.props.socket &&
-    this.props.socket.emit('start stream', {
+    const { token, tokenSecret, userId, socket } = this.props;
+
+    socket.emit('start stream', {
       keywords: this.keywords,
       access_token: token,
       access_token_secret: tokenSecret,
@@ -123,10 +118,8 @@ class App extends Component<AppProps, AppState> {
   };
 
   stopStream = (): void => {
-    this.props.socket &&
-    this.props.socket.emit('stop stream', {
-      user_id: this.props.userId
-    });
+    const { socket, userId } = this.props;
+    socket.emit('stop stream', { user_id: userId });
   };
 
   clearCards = (): void => {
@@ -137,10 +130,10 @@ class App extends Component<AppProps, AppState> {
   };
 
   handleLogout = (): void => {
+    const { socket, logout, userId } = this.props;
+    socket.emit('stop stream', { user_id: userId });
     this.clearCards();
-    this.props.logout && this.props.logout();
-    this.props.socket &&
-    this.props.socket.emit('stop stream', { userId: this.props.userId });
+    logout();
   };
 
   updateKeywords = (e: React.FormEvent<HTMLFormElement>): void => {
@@ -158,7 +151,7 @@ class App extends Component<AppProps, AppState> {
         <Nav
           onStartClick={this.startStream}
           onStopClick={this.stopStream}
-          onLoginClick={login!}
+          onLoginClick={login}
           onLogoutClick={this.handleLogout}
           onClearClick={this.clearCards}
         />
