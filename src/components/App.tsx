@@ -2,68 +2,73 @@ import React, { Component } from 'react';
 import Container from 'react-bootstrap/Container';
 import Nav from './Nav';
 import FloatingButtonGroup from './FloatingButtonGroup';
-import io from 'socket.io-client';
 import CircleIndicator from './CircleIndicator';
 import TweetCard from './TweetCard';
-import { setCookie, getCookie, deleteCookie } from '../utils';
 import toastr from 'toastr';
-import axios from 'axios';
-import * as firebase from 'firebase/app';
-import 'firebase/auth';
 import '../style/App.css';
-import {
-  ServerTweet,
-  ServerConnectResponse,
-  ServerHeaders
-} from '../server-types';
+import { ServerTweet, ServerConnectResponse } from '../server-types';
 import LoadingOverlay from './LoadingOverlay';
 import InputForm from './InputForm';
+import { login, logout } from '../store/actions';
+import { connect } from 'react-redux';
+
+const mapDispatchToProps = (dispatch: (func: any) => void) => ({
+  login: () => dispatch(login()),
+  logout: () => dispatch(logout())
+});
+
+const mapStateToProps = (state: any) => ({
+  isAuthInProgress: state.isAuthInProgress,
+  username: state.username,
+  userId: state.userId,
+  token: state.token,
+  tokenSecret: state.tokenSecret,
+  isLoggedIn: state.isLoggedIn,
+  socket: state.socket
+});
 
 interface AppState {
   cards: JSX.Element[];
-  socket: SocketIOClient.Socket;
   occurrences: number;
-  isLoggedIn: boolean;
-  isAuthInProgress: boolean;
-  username: string;
-  userId: string;
-  token: string;
-  tokenSecret: string;
+}
+
+interface AppProps {
+  login?: () => void;
+  logout?: () => void;
+  isLoggedIn?: boolean;
+  username?: string;
+  userId?: string;
+  token?: string;
+  tokenSecret?: string;
+  socket?: SocketIOClient.Socket;
 }
 
 type SocketCallback = (userId: string) => void;
 
-class App extends Component<{}, AppState> {
-  private readonly provider = new firebase.auth.TwitterAuthProvider();
+class App extends Component<AppProps, AppState> {
   private isAtBottom = false;
   private keywords: string[] = [];
 
   state = {
     cards: [] as JSX.Element[],
-    socket: io.connect(),
-    occurrences: 0,
-    isLoggedIn: false,
-    isAuthInProgress: true,
-    username: getCookie('username'),
-    userId: getCookie('id'),
-    token: getCookie('at'),
-    tokenSecret: getCookie('ats')
+    occurrences: 0
   };
 
-  constructor(props: {}) {
+  constructor(props: AppProps) {
     super(props);
 
-    this.state.socket.on(
+    this.props.socket &&
+    this.props.socket.on(
       'tweet',
       (data: ServerTweet, callback: SocketCallback) => {
         // The server broadcasts tweets to everyone connected
         // so we need to check if this tweet belongs to this client
-        if (data.user_id !== this.state.userId) {
+        if (data.user_id !== this.props.userId) {
           return;
         }
 
         // Invoke the callback to tell the server that this tweet was received
-        callback(data.user_id);
+        callback(data.user_id!);
         this.addCard(data);
 
         if (this.isAtBottom) {
@@ -72,20 +77,19 @@ class App extends Component<{}, AppState> {
       }
     );
 
-    this.state.socket.on('stream connected', (data: ServerConnectResponse) => {
-      if (data.user_id !== this.state.userId) return;
+    this.props.socket &&
+    this.props.socket.on('stream connected', (data: ServerConnectResponse) => {
+        if (data.user_id !== this.props.userId) return;
 
-      toastr.success(`Listening for ${this.keywords.join(', ')}`, 'Connected');
-    });
+        toastr.success(
+          `Listening for ${this.keywords.join(', ')}`,
+          'Connected'
+        );
+      }
+    );
   }
 
   componentDidMount() {
-    const { username, userId, token, tokenSecret } = this.state;
-    if (username && userId && token && tokenSecret) {
-      this.setState({ isLoggedIn: true });
-    }
-    this.setState({ isAuthInProgress: false });
-
     window.addEventListener('scroll', this.onWindowScroll);
   }
 
@@ -108,8 +112,9 @@ class App extends Component<{}, AppState> {
   };
 
   startStream = () => {
-    const { token, tokenSecret, userId } = this.state;
-    this.state.socket.emit('start stream', {
+    const { token, tokenSecret, userId } = this.props;
+    this.props.socket &&
+    this.props.socket.emit('start stream', {
       keywords: this.keywords,
       access_token: token,
       access_token_secret: tokenSecret,
@@ -118,8 +123,9 @@ class App extends Component<{}, AppState> {
   };
 
   stopStream = (): void => {
-    this.state.socket.emit('stop stream', {
-      user_id: this.state.userId
+    this.props.socket &&
+    this.props.socket.emit('stop stream', {
+      user_id: this.props.userId
     });
   };
 
@@ -130,81 +136,11 @@ class App extends Component<{}, AppState> {
     });
   };
 
-  handleLogin = (): void => {
-    this.setState({ isAuthInProgress: true });
-
-    firebase
-      .auth()
-      .signInWithPopup(this.provider)
-      .then((result: any) => {
-        const userId = result.additionalUserInfo.profile.id_str;
-        const username = result.additionalUserInfo.username;
-        const { accessToken, secret } = result.credential;
-        const headers: ServerHeaders = {
-          access_token: accessToken,
-          access_token_secret: secret,
-          user_id: userId
-        };
-
-        axios
-          .post('login', { headers })
-          .then(() => {
-            this.setState({
-              username: setCookie('username', username),
-              userId: setCookie('id', userId),
-              token: setCookie('at', accessToken),
-              tokenSecret: setCookie('ats', secret),
-              isLoggedIn: true
-            });
-            toastr.success(`Hello, @${username}`, 'Welcome');
-          })
-          .catch(err => {
-            console.log(err);
-            toastr.error(
-              'An error occurred while logging in, please try again',
-              'Error'
-            );
-          })
-          .finally(() => {
-            this.setState({ isAuthInProgress: false });
-          });
-      })
-      .catch(err => {
-        console.log(err);
-        toastr.error(
-          'An error occurred while logging in, please try again',
-          'Error'
-        );
-        this.setState({
-          isAuthInProgress: false
-        });
-      });
-  };
-
   handleLogout = (): void => {
-    this.setState({ isAuthInProgress: true });
-    this.state.socket.emit('stop stream', { userId: this.state.userId });
-
-    axios
-      .get('/logout')
-      .then(() => {
-        this.setState({
-          username: deleteCookie('username'),
-          userId: deleteCookie('id'),
-          token: deleteCookie('at'),
-          tokenSecret: deleteCookie('ats'),
-          isLoggedIn: false,
-          cards: [],
-          occurrences: 0
-        });
-      })
-      .catch(err => {
-        console.log(err);
-        toastr.error('An error occurred while logging out', 'error');
-      })
-      .finally(() => {
-        this.setState({ isAuthInProgress: false });
-      });
+    this.clearCards();
+    this.props.logout && this.props.logout();
+    this.props.socket &&
+    this.props.socket.emit('stop stream', { userId: this.props.userId });
   };
 
   updateKeywords = (e: React.FormEvent<HTMLFormElement>): void => {
@@ -215,29 +151,21 @@ class App extends Component<{}, AppState> {
   };
 
   render() {
-    const {
-      username,
-      isLoggedIn,
-      occurrences,
-      socket,
-      userId,
-      cards,
-      isAuthInProgress
-    } = this.state;
+    const { occurrences, cards } = this.state;
+    const { login, isLoggedIn, username } = this.props;
     return (
       <div>
         <Nav
           onStartClick={this.startStream}
           onStopClick={this.stopStream}
-          onLoginClick={this.handleLogin}
+          onLoginClick={login!}
           onLogoutClick={this.handleLogout}
           onClearClick={this.clearCards}
-          isLoggedIn={isLoggedIn}
         />
-        <InputForm isLoggedIn={isLoggedIn} onChange={this.updateKeywords} />
+        <InputForm onChange={this.updateKeywords} />
         <h3>
           Occurrences: <span>{occurrences}</span>
-          <CircleIndicator socket={socket} userId={userId} />
+          <CircleIndicator />
         </h3>
         <p className="App_display-username" hidden={!isLoggedIn}>
           Signed in as {}
@@ -253,10 +181,13 @@ class App extends Component<{}, AppState> {
           {cards}
         </Container>
         <FloatingButtonGroup />
-        <LoadingOverlay show={!isAuthInProgress} />
+        <LoadingOverlay />
       </div>
     );
   }
 }
 
-export default App;
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(App);

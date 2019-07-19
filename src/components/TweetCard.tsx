@@ -3,8 +3,8 @@ import Card from 'react-bootstrap/Card';
 import '../style/TweetCard.css';
 import { ServerTweet } from '../server-types';
 
-export default function TweetCard({ tweet }: ServerTweet) {
-  const { tweet_url, screen_name, created_at, text, profile_url } = tweet;
+const TweetCard = (data: ServerTweet) => {
+  const { tweet_url, screen_name, created_at, text, profile_url } = data.tweet;
   return (
     <Card className="TweetCard">
       <Card.Body
@@ -30,4 +30,6 @@ export default function TweetCard({ tweet }: ServerTweet) {
       </Card.Body>
     </Card>
   );
-}
+};
+
+export default TweetCard;

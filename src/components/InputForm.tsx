@@ -2,12 +2,17 @@ import React from 'react';
 import Form from 'react-bootstrap/Form';
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import Tooltip from 'react-bootstrap/Tooltip';
+import { connect } from 'react-redux';
 import '../style/InputForm.css';
 
 interface InputFormProps {
-  isLoggedIn: boolean;
+  isLoggedIn?: boolean;
   onChange: (e: React.FormEvent<HTMLFormElement>) => void;
 }
+
+const mapStateToProps = (state: any) => ({
+  isLoggedIn: state.isLoggedIn
+});
 
 const InputForm = ({ isLoggedIn, onChange }: InputFormProps) => {
   const tooltip = (
@@ -30,4 +35,4 @@ const InputForm = ({ isLoggedIn, onChange }: InputFormProps) => {
   );
 };
 
-export default InputForm;
+export default connect(mapStateToProps)(InputForm);

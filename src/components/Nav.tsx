@@ -2,6 +2,7 @@ import React from 'react';
 import Navbar from 'react-bootstrap/Navbar';
 import ButtonToolbar from 'react-bootstrap/ButtonToolbar';
 import Button from 'react-bootstrap/Button';
+import { connect } from 'react-redux';
 import '../style/Nav.css';
 
 type Callback = () => void;
@@ -12,10 +13,14 @@ interface NavProps {
   onClearClick: Callback;
   onLoginClick: Callback;
   onLogoutClick: Callback;
-  isLoggedIn: boolean;
+  isLoggedIn?: boolean;
 }
 
-export default function Nav(props: NavProps) {
+const mapStateToProps = (state: any) => ({
+  isLoggedIn: state.isLoggedIn
+});
+
+function Nav(props: NavProps) {
   const actions: string[] = [
     'Start',
     'Stop',
@@ -51,3 +56,5 @@ export default function Nav(props: NavProps) {
     </div>
   );
 }
+
+export default connect(mapStateToProps)(Nav);

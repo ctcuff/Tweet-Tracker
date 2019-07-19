@@ -4,6 +4,8 @@ import App from './components/App';
 import './style/index.css';
 import * as firebase from 'firebase/app';
 import firebaseConfig from './config';
+import { Provider } from 'react-redux';
+import store from './store/index';
 
 firebase.initializeApp(firebaseConfig);
 
@@ -22,5 +24,10 @@ function Footer() {
   );
 }
 
-ReactDOM.render(<App />, document.getElementById('root'));
+ReactDOM.render(
+  <Provider store={store}>
+    <App />
+  </Provider>,
+  document.getElementById('root')
+);
 ReactDOM.render(<Footer />, document.getElementById('footer'));
